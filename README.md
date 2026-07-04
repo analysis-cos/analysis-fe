@@ -51,3 +51,19 @@ The panel shows data reliability, summary KPI cards, commerce signal interpretat
    `npm run build`
 5. Run tests:
    `npm test`
+
+## Run With Docker
+
+Production-style static build:
+
+1. Build and run:
+   `docker compose up --build`
+2. Open:
+   `http://localhost:3000`
+
+Vite dev server in Docker:
+
+1. Run the dev profile:
+   `docker compose --profile dev up app-dev`
+2. Open:
+   `http://localhost:3001`
