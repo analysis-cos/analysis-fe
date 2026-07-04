@@ -26,14 +26,8 @@ import {
 } from 'recharts';
 import { MOCK_PRODUCTS } from '../constants';
 import OliveYoungCommercePanel from '../features/commerce/oliveyoung/components/OliveYoungCommercePanel';
-import { mediaFeatureCards } from '../brandDashPlan';
-import type { FeaturePageId } from '../brandDashPlan';
 
 type Platform = 'YouTube' | 'Instagram' | 'Meta Ads' | 'TikTok';
-
-interface AdAnalyticsViewProps {
-  onFeatureOpen: (featureId: FeaturePageId) => void;
-}
 
 interface Campaign {
   id: string;
@@ -50,6 +44,10 @@ interface Campaign {
   targetChannel: string;
 }
 
+interface AdAnalyticsViewProps {
+  selectedProductRank: number;
+}
+
 const platformIcons: Record<Platform, React.ReactNode> = {
   YouTube: <Youtube className="w-4 h-4" />,
   Instagram: <Instagram className="w-4 h-4" />,
@@ -57,64 +55,36 @@ const platformIcons: Record<Platform, React.ReactNode> = {
   TikTok: <Video className="w-4 h-4" />,
 };
 
-const initialCampaigns: Campaign[] = [
-  {
-    id: 'c-yt-1',
-    platform: 'YouTube',
-    productRank: 1,
-    name: '메디힐 7일 사용 리뷰',
-    creative: '롱폼 리뷰 영상',
-    url: 'https://www.youtube.com/watch?v=sample1',
-    spend: 7800000,
-    impressions: 428000,
-    clicks: 18240,
-    engagements: 12450,
-    startDate: '01.08',
-    targetChannel: '올리브영',
-  },
-  {
-    id: 'c-ig-1',
-    platform: 'Instagram',
-    productRank: 2,
-    name: '에스트라 크림 릴스 캠페인',
-    creative: '릴스 체험단',
-    url: 'https://www.instagram.com/reel/sample',
-    spend: 4200000,
-    impressions: 318000,
-    clicks: 11620,
-    engagements: 22100,
-    startDate: '01.10',
-    targetChannel: '쿠팡',
-  },
-  {
-    id: 'c-meta-1',
-    platform: 'Meta Ads',
-    productRank: 6,
-    name: '메디큐브 리타겟팅',
-    creative: '전환 최적화 배너',
-    url: 'https://ads.example.com/meta',
-    spend: 3600000,
-    impressions: 226000,
-    clicks: 8840,
-    engagements: 6120,
-    startDate: '01.12',
-    targetChannel: '네이버',
-  },
-  {
-    id: 'c-tt-1',
-    platform: 'TikTok',
-    productRank: 7,
-    name: '달바 미스트 숏폼',
-    creative: '15초 사용감 영상',
-    url: 'https://www.tiktok.com/@sample/video/1',
-    spend: 2800000,
-    impressions: 372000,
-    clicks: 9540,
-    engagements: 18300,
-    startDate: '01.14',
-    targetChannel: '올리브영',
-  },
-];
+const campaignSeedPlatforms: Platform[] = ['YouTube', 'Instagram', 'Meta Ads', 'TikTok'];
+const campaignSeedChannels = ['올리브영', '쿠팡', '네이버', '올리브영'];
+const campaignSeedCreatives = ['롱폼 리뷰 영상', '릴스 체험단', '리타겟팅 배너', '15초 사용감 영상'];
+
+const initialCampaigns: Campaign[] = MOCK_PRODUCTS.slice(0, 10).map((product, index) => {
+  const platform = campaignSeedPlatforms[index % campaignSeedPlatforms.length];
+  const spend = [7800000, 4200000, 3600000, 2800000][index % 4];
+
+  return {
+    id: `c-${product.rank}-${platform.toLowerCase().replace(/\s/g, '-')}`,
+    platform,
+    productRank: product.rank,
+    name: `${product.brand} ${campaignSeedCreatives[index % campaignSeedCreatives.length]} 캠페인`,
+    creative: campaignSeedCreatives[index % campaignSeedCreatives.length],
+    url:
+      platform === 'YouTube'
+        ? 'https://www.youtube.com/watch?v=sample1'
+        : platform === 'Instagram'
+          ? 'https://www.instagram.com/reel/sample'
+          : platform === 'TikTok'
+            ? 'https://www.tiktok.com/@sample/video/1'
+            : 'https://ads.example.com/meta',
+    spend,
+    impressions: Math.round(spend / 18) + index * 8400,
+    clicks: Math.round(spend / 430) + index * 420,
+    engagements: Math.round(spend / 250) + index * 680,
+    startDate: `01.${String(8 + (index % 7)).padStart(2, '0')}`,
+    targetChannel: campaignSeedChannels[index % campaignSeedChannels.length],
+  };
+});
 
 const trendData = [
   { day: '01.08', spend: 210, impressions: 58, clicks: 2.1 },
@@ -126,6 +96,43 @@ const trendData = [
   { day: '01.14', spend: 560, impressions: 168, clicks: 6.2 },
 ];
 
+const creativeCompareData = [
+  { type: '롱폼 리뷰', youtube: 4.3, instagram: 2.1, tiktok: 2.8 },
+  { type: '릴스 체험', youtube: 2.6, instagram: 5.8, tiktok: 4.1 },
+  { type: '숏폼 사용감', youtube: 2.9, instagram: 4.7, tiktok: 6.2 },
+  { type: '배너 리타겟팅', youtube: 1.8, instagram: 3.2, tiktok: 2.4 },
+];
+
+const contentFormatRows = [
+  { format: '사용 전/후 비교', response: '참여율 6.2%', fit: '후행 연결 좋음', action: '다음 소재 유지' },
+  { format: '성분 설명형', response: '저장률 4.8%', fit: '검색 유입 보조', action: '썸네일 개선' },
+  { format: '크리에이터 루틴', response: '댓글률 3.1%', fit: '신뢰 형성', action: '롱폼 확장' },
+];
+
+const referenceRows = [
+  { message: '7일 진정 루틴', hook: '민감 피부 사용 장면', platform: 'YouTube', signal: '완주율 높음' },
+  { message: '산뜻한 출근템', hook: '끈적임 없는 사용감', platform: 'Instagram', signal: '저장 증가' },
+  { message: '속건조 케어', hook: '메이크업 전 보습', platform: 'TikTok', signal: '공유 증가' },
+];
+
+const creatorCandidateRows = [
+  { name: '뷰티로그', group: '미드', fit: '롱폼 적합', reason: '리뷰형 콘텐츠 반응 안정적' },
+  { name: '스킨케어 마스터', group: '마이크로', fit: '댓글 대응', reason: '댓글 질의응답 활발' },
+  { name: '데일리 루틴', group: '미드', fit: '릴스 적합', reason: '짧은 사용 장면 반응 우수' },
+];
+
+const brandMentionRows = [
+  { brand: '자사', mention: '+38%', context: '사용감 긍정 언급', risk: '낮음' },
+  { brand: '경쟁 A', mention: '+24%', context: '쿠폰 캠페인 언급', risk: '중간' },
+  { brand: '경쟁 B', mention: '+17%', context: '향 불만 언급', risk: '기회' },
+];
+
+const savedContentRows = [
+  { title: '선크림 출근 루틴 릴스', tag: '다음 소재', owner: '브랜드팀', status: '브리프 후보' },
+  { title: '7일 진정 롱폼 리뷰', tag: '크리에이터', owner: '마케팅팀', status: '집행 검토' },
+  { title: '성분 설명 쇼츠', tag: '레퍼런스', owner: '콘텐츠팀', status: '저장됨' },
+];
+
 function formatCurrency(value: number) {
   if (value >= 1000000) return `₩${(value / 1000000).toFixed(1)}M`;
   return `₩${Math.round(value / 10000)}만`;
@@ -135,10 +142,9 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat('ko-KR').format(value);
 }
 
-const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ onFeatureOpen }) => {
+const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }) => {
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [activePlatform, setActivePlatform] = useState<Platform | '전체'>('전체');
-  const [selectedProductRank, setSelectedProductRank] = useState(MOCK_PRODUCTS[0].rank);
   const [newUrl, setNewUrl] = useState('');
   const [newPlatform, setNewPlatform] = useState<Platform>('YouTube');
   const [newSpend, setNewSpend] = useState('1200000');
@@ -205,23 +211,13 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ onFeatureOpen }) => {
           </div>
           <h2 className="text-4xl font-black text-gray-900 tracking-tight">광고를 어디에, 얼마나, 어떻게 집행했는지 봅니다.</h2>
           <p className="mt-3 text-sm font-bold text-gray-500 max-w-3xl">
-            YouTube, Instagram, Meta Ads, TikTok 캠페인의 집행 금액과 노출, 클릭, 참여 신호를 상품 단위로 추적합니다.
+            YouTube, Instagram, Meta Ads, TikTok 캠페인의 집행 금액과 노출, 클릭, 참여 반응을 선택 상품 기준으로 추적합니다.
           </p>
         </div>
 
-        <div className="bg-white p-2 rounded-2xl border border-[#ecf3e7] shadow-sm flex flex-col sm:flex-row sm:items-center gap-3">
-          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">분석 상품</span>
-          <select
-            value={selectedProductRank}
-            onChange={(e) => setSelectedProductRank(Number(e.target.value))}
-            className="bg-gray-50 border-none rounded-xl text-sm font-black px-4 py-2 focus:ring-2 focus:ring-[#6dec13]/50 outline-none min-w-[260px]"
-          >
-            {MOCK_PRODUCTS.slice(0, 10).map((product) => (
-              <option key={product.rank} value={product.rank}>
-                #{product.rank} {product.name}
-              </option>
-            ))}
-          </select>
+        <div className="rounded-2xl border border-[#ecf3e7] bg-white px-5 py-4 shadow-sm">
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">선택 상품 기준</p>
+          <p className="mt-1 max-w-[360px] truncate text-sm font-black text-gray-900">{selectedProduct.name}</p>
         </div>
       </section>
 
@@ -258,34 +254,115 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ onFeatureOpen }) => {
         </div>
       </section>
 
-      <section className="bg-white rounded-[2.5rem] border border-[#ecf3e7] shadow-sm overflow-hidden">
-        <div className="p-6 lg:p-8 border-b border-[#ecf3e7] flex flex-col xl:flex-row xl:items-end justify-between gap-5">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">Leading Feature Pages</p>
-            <h3 className="mt-2 text-2xl font-black text-gray-900">선행지표 기능 페이지</h3>
-            <p className="mt-2 text-sm font-bold text-gray-500 max-w-3xl">
-              콘텐츠 탐색, 키워드 레퍼런스, 크리에이터 분석처럼 실제 업무 단위로 들어가서 볼 수 있습니다.
-            </p>
+      <section className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        <div className="xl:col-span-7 bg-white rounded-[2.5rem] border border-[#ecf3e7] p-8 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">소재 성과 비교</p>
+              <h3 className="mt-2 text-2xl font-black text-gray-900">어떤 소재 형식이 어떤 플랫폼에서 강한지 비교합니다</h3>
+              <p className="mt-2 text-sm font-bold text-gray-500">콘텐츠 유형과 플랫폼 반응을 같은 기준으로 비교합니다.</p>
+            </div>
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">미디어 기능 01-07</span>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={creativeCompareData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f6ef" />
+                <XAxis dataKey="type" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 800, fill: '#6c9a4c' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 800, fill: '#6c9a4c' }} />
+                <Tooltip contentStyle={{ borderRadius: 16, border: '1px solid #ecf3e7', fontWeight: 800 }} formatter={(value) => [`${value}%`, '참여율']} />
+                <Bar dataKey="youtube" name="YouTube" fill="#111827" radius={[10, 10, 0, 0]} />
+                <Bar dataKey="instagram" name="Instagram" fill="#d946ef" radius={[10, 10, 0, 0]} />
+                <Bar dataKey="tiktok" name="TikTok" fill="#6dec13" radius={[10, 10, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        <div className="p-6 lg:p-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {mediaFeatureCards.map((feature) => (
-            <button
-              key={feature.id}
-              onClick={() => onFeatureOpen(feature.id)}
-              className="group text-left rounded-2xl border border-[#ecf3e7] bg-[#f7f8f6] p-5 hover:bg-[#6dec13]/10 hover:border-[#6dec13]/60 transition-all"
-            >
-              <div className="flex items-start justify-between gap-3 mb-4">
-                <span className="px-2.5 py-1 rounded-lg bg-white border border-[#ecf3e7] text-[10px] font-black text-[#6c9a4c]">
-                  {feature.sourceRows}
-                </span>
-                <ArrowUpRight className="w-4 h-4 text-gray-300 group-hover:text-gray-900 transition-colors" />
+        <div className="xl:col-span-5 bg-white rounded-[2.5rem] border border-[#ecf3e7] p-8 shadow-sm">
+          <h3 className="text-xl font-black text-gray-900 mb-5">콘텐츠 유형별 액션</h3>
+          <div className="space-y-3">
+            {contentFormatRows.map((row) => (
+              <div key={row.format} className="rounded-2xl bg-[#f7f8f6] border border-[#ecf3e7] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-black text-gray-900">{row.format}</p>
+                    <p className="mt-1 text-xs font-bold text-gray-500">{row.response} · {row.fit}</p>
+                  </div>
+                  <span className="shrink-0 px-2.5 py-1 rounded-lg bg-white border border-[#ecf3e7] text-[10px] font-black text-[#2a4519]">{row.action}</span>
+                </div>
               </div>
-              <h4 className="text-lg font-black text-gray-900">{feature.title}</h4>
-              <p className="mt-2 text-xs font-bold text-gray-500 leading-relaxed">{feature.description}</p>
-            </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="bg-white rounded-[2rem] border border-[#ecf3e7] p-6 shadow-sm">
+          <h3 className="text-xl font-black text-gray-900 mb-5">후킹 메시지 레퍼런스</h3>
+          <div className="space-y-3">
+            {referenceRows.map((row) => (
+              <div key={row.message} className="rounded-2xl bg-[#f7f8f6] border border-[#ecf3e7] p-4">
+                <p className="text-sm font-black text-gray-900">{row.message}</p>
+                <p className="mt-1 text-xs font-bold text-gray-500">{row.hook}</p>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className="text-[10px] font-black text-[#6c9a4c]">{row.platform}</span>
+                  <span className="text-[10px] font-black text-gray-500">{row.signal}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-[2rem] border border-[#ecf3e7] p-6 shadow-sm">
+          <h3 className="text-xl font-black text-gray-900 mb-5">브랜드 언급 모니터</h3>
+          <div className="space-y-3">
+            {brandMentionRows.map((row) => (
+              <div key={row.brand} className="grid grid-cols-[80px_1fr_auto] gap-3 items-center rounded-2xl bg-[#f7f8f6] border border-[#ecf3e7] p-4">
+                <p className="text-sm font-black text-gray-900">{row.brand}</p>
+                <div>
+                  <p className="text-sm font-black text-[#2a4519]">{row.mention}</p>
+                  <p className="mt-1 text-[11px] font-bold text-gray-500">{row.context}</p>
+                </div>
+                <span className="text-[10px] font-black text-gray-500">{row.risk}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-[2rem] border border-[#ecf3e7] p-6 shadow-sm">
+          <h3 className="text-xl font-black text-gray-900 mb-5">크리에이터 후보</h3>
+          <div className="space-y-3">
+            {creatorCandidateRows.map((row) => (
+              <div key={row.name} className="rounded-2xl bg-[#f7f8f6] border border-[#ecf3e7] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-black text-gray-900">{row.name}</p>
+                  <span className="px-2.5 py-1 rounded-lg bg-gray-900 text-[#6dec13] text-[10px] font-black">{row.fit}</span>
+                </div>
+                <p className="mt-1 text-xs font-bold text-gray-500">{row.group} · {row.reason}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white rounded-[2rem] border border-[#ecf3e7] p-6 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
+          <div>
+            <h3 className="text-xl font-black text-gray-900">콘텐츠 보관함</h3>
+            <p className="mt-1 text-sm font-bold text-gray-500">레퍼런스, 크리에이터, 다음 소재 후보를 캠페인 실행 항목으로 관리합니다.</p>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">{savedContentRows.length}개 저장</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {savedContentRows.map((row) => (
+            <div key={row.title} className="rounded-2xl bg-[#f7f8f6] border border-[#ecf3e7] p-5">
+              <p className="text-sm font-black text-gray-900">{row.title}</p>
+              <p className="mt-2 text-xs font-bold text-gray-500">{row.owner}</p>
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <span className="px-2.5 py-1 rounded-lg bg-white border border-[#ecf3e7] text-[10px] font-black text-[#6c9a4c]">{row.tag}</span>
+                <span className="text-[10px] font-black text-gray-500">{row.status}</span>
+              </div>
+            </div>
           ))}
         </div>
       </section>
@@ -411,7 +488,7 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ onFeatureOpen }) => {
               <h3 className="text-xl font-black mb-5">후행지표 연결 힌트</h3>
               <div className="space-y-4">
                 <div className="bg-white/8 border border-white/10 rounded-2xl p-5">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">강한 선행 신호</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">강한 광고 반응</p>
                   <p className="mt-2 text-lg font-black text-[#6dec13]">YouTube 클릭률 4.3%</p>
                   <p className="mt-2 text-xs font-bold text-gray-400 leading-relaxed">
                     올리브영 구매 반응이 2-3일 뒤 따라오는지 후행지표 분석관에서 확인하세요.
@@ -485,47 +562,6 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ onFeatureOpen }) => {
 
       <OliveYoungCommercePanel campaignId="campaign-youtube-01" productId={`product-${selectedProductRank}`} />
 
-      <details className="group bg-white rounded-[2rem] border border-[#ecf3e7] shadow-sm overflow-hidden">
-        <summary className="cursor-pointer list-none p-6 flex items-center justify-between gap-4">
-          <div>
-            <h3 className="text-xl font-black text-gray-900">선행지표 기획 상세</h3>
-            <p className="mt-1 text-sm font-bold text-gray-400">광고 집행 이후 확인할 기능 화면</p>
-          </div>
-          <span className="px-3 py-2 rounded-xl bg-[#f7f8f6] text-xs font-black text-[#6c9a4c] group-open:bg-[#6dec13] group-open:text-gray-900">
-            펼치기
-          </span>
-        </summary>
-
-        <div className="px-6 pb-6 space-y-6">
-          <section className="bg-[#f7f8f6] rounded-[2rem] border border-[#ecf3e7] p-6">
-            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-5 mb-7">
-              <div>
-                <h3 className="text-2xl font-black text-gray-900">미디어 핵심 기능</h3>
-                <p className="mt-1 text-sm font-bold text-gray-400">광고 소재와 채널 반응을 확인하는 기능</p>
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">YouTube · Instagram · TikTok · X 확장 가능</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {mediaFeatureCards.map((feature) => (
-                <button
-                  key={feature.id}
-                  onClick={() => onFeatureOpen(feature.id)}
-                  className="group text-left rounded-2xl border border-[#ecf3e7] bg-white p-5 hover:bg-[#6dec13]/10 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <h4 className="font-black text-gray-900">{feature.title}</h4>
-                    <span className="px-2 py-1 rounded-lg bg-[#f7f8f6] text-[9px] font-black text-[#6c9a4c] border border-[#ecf3e7]">{feature.sourceRows}</span>
-                  </div>
-                  <p className="text-xs font-bold text-gray-500 leading-relaxed">{feature.description}</p>
-                  <div className="mt-4 inline-flex items-center gap-1 text-[11px] font-black text-[#6c9a4c]">
-                    페이지 보기 <ArrowUpRight className="w-3.5 h-3.5" />
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-        </div>
-      </details>
     </div>
   );
 };

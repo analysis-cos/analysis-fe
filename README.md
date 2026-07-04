@@ -12,31 +12,15 @@ View your app in AI Studio: https://ai.studio/apps/drive/1e5-YI6zx7r-mRFqkPDbg-t
 
 The app is organized into three analytics spaces:
 
-- **요약 대시보드**: the primary landing view. It summarizes ad spend, clicks, purchase signals, ROAS, channel links, implementation roadmap, report templates, and priority products.
-- **선행지표 분석관**: tracks media/content/creator activity across YouTube, Instagram, Meta Ads, TikTok, and future social channels. It focuses on campaign execution, creative response, channel comparison, and feature entry points.
-- **후행지표 분석관**: tracks commerce signals across 올리브영, 쿠팡, 네이버, and future commerce channels. It focuses on ranking changes, product comparison, review response, reports, and alerts.
-
-The detailed planning source is `260629_BRAND DASH_서비스 기획안.xlsx`. The current prototype reflects these sheets:
-
-- `00. 서비스 개요`
-- `01. 미디어_기능 정의`
-- `01. 미디어_요구 사항 정의`
-- `02. 커머스_요구사항 정의`
+- **요약 대시보드**: the primary landing view. It summarizes the assigned brand or company portfolio across products: ad spend, purchase response, ROAS, campaign summaries, and product-level ad-to-commerce links.
+- **선행지표 분석관**: tracks media/content/creator activity across YouTube, Instagram, Meta Ads, TikTok, and future social channels for the selected product. It focuses on campaign execution, creative response, channel comparison, and campaign URL registration.
+- **후행지표 분석관**: tracks commerce signals across 올리브영, 쿠팡, 네이버, and future commerce channels for the same selected product. It focuses on purchase response trends, ad timing overlays, ranking changes, product condition comparison, and review response.
 
 The intended analysis flow is:
 
-1. Register or review campaign execution in **선행지표 분석관**.
-2. Check purchase signals and commerce response in **후행지표 분석관**.
-3. Use **요약 대시보드** as the daily decision panel for budget, creative, and channel actions.
-
-## Feature Pages
-
-Each planning feature now has its own detail page. The summary dashboard exposes a feature map, and the leading/lagging analytics views expose category-specific feature cards.
-
-- **선행지표 기능 페이지**: 트렌드 콘텐츠, 키워드 레퍼런스, 콘텐츠 유형 분석, 자사·경쟁사 언급, 크리에이터 심층 분석, 콘텐츠 보관함
-- **후행지표 기능 페이지**: 실시간 랭킹 추적, 리딩 상품 분석, 라이징 상품 탐지, 시장 반응 요약, 자사 리뷰 분석, 경쟁사 리뷰 분석
-
-Every feature page now keeps customer-facing judgment first: objective, key metric, connected platforms, trend view, workflow, expected outputs, and related feature links.
+1. Use **요약 대시보드** to review the brand/company-level total across products.
+2. Pick one product as the shared analysis unit in **선행지표 분석관** or **후행지표 분석관**.
+3. Compare that product's ad execution with its commerce response across channels.
 
 ## OliveYoung Commerce Analysis
 
@@ -52,10 +36,6 @@ Implemented frontend contracts:
 - `getOliveYoungReviewVocSummary(campaignId, productId)`
 
 The panel shows data reliability, summary KPI cards, commerce signal interpretation, timeline trends, confounders, product snapshots, review response preview, metric coverage, and restricted metric notices. Exact sales volume, revenue, conversion rate, and order count are not displayed without partner or advertiser-provided data.
-
-## Service Requirement Map
-
-The summary dashboard links to a frontend **서비스 기능 전체 맵**. It catalogs workspace, product, brand, keyword, rank, report, and alert requirements with domain filters, status filters, search, duplicate requirement ID flags, and backend/data dependency labels.
 
 ## Run Locally
 

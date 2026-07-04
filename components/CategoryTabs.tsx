@@ -36,9 +36,6 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({ currentView, onNavigate }) 
           <BarChart3 className="w-4 h-4" />
           BrandDash Analytics
         </div>
-        <h2 className="mt-2 text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
-          필요한 분석만 선택해서 전체 화면으로 봅니다.
-        </h2>
       </div>
 
       <div className="inline-flex w-full xl:w-auto rounded-2xl bg-white border border-[#ecf3e7] p-1.5 shadow-sm">

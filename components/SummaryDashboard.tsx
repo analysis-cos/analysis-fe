@@ -3,8 +3,6 @@ import {
   ArrowRight,
   BarChart3,
   CheckCircle2,
-  Layers3,
-  MousePointerClick,
   Radio,
   ShoppingBag,
   TrendingUp,
@@ -23,48 +21,37 @@ import {
 } from 'recharts';
 import { MOCK_PRODUCTS } from '../constants';
 import { Product } from '../types';
-import {
-  commerceFeatureCards,
-  mediaFeatureCards,
-  reportTemplates,
-  roadmapItems,
-  servicePrinciples,
-  serviceProblems,
-} from '../brandDashPlan';
-import type { FeaturePageId } from '../brandDashPlan';
 
 interface SummaryDashboardProps {
   onProductClick: (product: Product) => void;
-  onFeatureOpen: (featureId: FeaturePageId) => void;
-  onOpenServiceMap: () => void;
 }
 
 const kpiCards = [
   {
+    label: '관리 상품',
+    value: `${MOCK_PRODUCTS.slice(0, 10).length}개`,
+    delta: '상위 상품 기준',
+    icon: BarChart3,
+    tone: 'text-[#2a4519] bg-[#6dec13]/15',
+  },
+  {
     label: '총 광고비',
     value: '₩18.4M',
-    delta: '+22%',
+    delta: '+22% vs 전주',
     icon: WalletCards,
     tone: 'text-blue-600 bg-blue-50',
   },
   {
-    label: '광고 클릭',
-    value: '42,180',
-    delta: '+31%',
-    icon: MousePointerClick,
-    tone: 'text-[#2a4519] bg-[#6dec13]/15',
-  },
-  {
     label: '구매 반응',
     value: '2,846',
-    delta: '+18%',
+    delta: '+18% vs 전주',
     icon: ShoppingBag,
     tone: 'text-purple-600 bg-purple-50',
   },
   {
-    label: '통합 ROAS',
+    label: '평균 ROAS',
     value: '387%',
-    delta: '+41p',
+    delta: '+41p vs 전주',
     icon: TrendingUp,
     tone: 'text-orange-600 bg-orange-50',
   },
@@ -80,74 +67,122 @@ const performanceTrend = [
   { day: '일', spend: 580, revenue: 2230, clicks: 7040 },
 ];
 
-const channelLinks = [
-  {
-    source: 'YouTube',
-    target: '올리브영',
-    spend: '₩7.8M',
-    conversion: '1,184건',
-    roas: '421%',
-    status: '예산 증액 후보',
-  },
-  {
-    source: 'Instagram',
-    target: '쿠팡',
-    spend: '₩4.2M',
-    conversion: '694건',
-    roas: '362%',
-    status: '소재 추가 필요',
-  },
-  {
-    source: 'Meta Ads',
-    target: '네이버',
-    spend: '₩3.6M',
-    conversion: '518건',
-    roas: '298%',
-    status: '랜딩 개선 필요',
-  },
-];
-
 const channelRevenue = [
   { channel: '올리브영', revenue: 3280 },
   { channel: '쿠팡', revenue: 2140 },
   { channel: '네이버', revenue: 1760 },
 ];
 
-const insightProducts = MOCK_PRODUCTS.slice(0, 4).map((product, index) => ({
+const campaignSummaries = [
+  {
+    campaign: '브랜드 리뷰 콘텐츠 캠페인',
+    period: '01.08 - 01.14',
+    spend: '₩7.8M',
+    purchase: '1,184건',
+    roas: '421%',
+    summary: '주력 상품군의 리뷰형 콘텐츠 집행 이후 판매 채널 반응과 랭킹 변화를 함께 확인합니다.',
+    nextAction: '예산 검토',
+  },
+  {
+    campaign: '신규 소재 확장 캠페인',
+    period: '01.10 - 01.14',
+    spend: '₩4.2M',
+    purchase: '694건',
+    roas: '362%',
+    summary: '숏폼 소재 반응이 높은 상품군을 중심으로 판매 채널 반응이 따라오는지 점검합니다.',
+    nextAction: '소재 확장',
+  },
+  {
+    campaign: '리타겟팅 캠페인',
+    period: '01.12 - 01.14',
+    spend: '₩3.6M',
+    purchase: '518건',
+    roas: '298%',
+    summary: '클릭 흐름은 유지되지만 판매 반응이 둔화되는 상품은 상세 페이지와 혜택 조건을 확인합니다.',
+    nextAction: '상세 점검',
+  },
+  {
+    campaign: '채널별 구매 반응 점검',
+    period: '01.13 - 01.14',
+    spend: '₩2.8M',
+    purchase: '432건',
+    roas: '314%',
+    summary: '올리브영, 쿠팡, 네이버에서 구매 반응이 강한 상품군과 약한 상품군을 나눠 봅니다.',
+    nextAction: '채널 조정',
+  },
+];
+
+const brandWorkflowRows = [
+  {
+    title: '광고 반응이 강한 상품',
+    leading: '리뷰 콘텐츠 클릭률과 완주율 확인',
+    commerce: '판매 채널별 구매 반응과 랭킹 변화 비교',
+    check: '할인·쿠폰·증정 동시 진행 여부 확인',
+    action: '예산 검토',
+  },
+  {
+    title: '광고 반응은 좋은데 판매 반응이 약한 상품',
+    leading: '소재 저장률과 클릭 흐름 확인',
+    commerce: '상품 상세 유입과 가격 조건 점검',
+    check: '상품 상세, 리뷰 수, 혜택 조건 확인',
+    action: '상세 점검',
+  },
+  {
+    title: '판매 반응은 있으나 광고 반응이 약한 상품',
+    leading: '소재 형식과 플랫폼별 반응 비교',
+    commerce: '구매 반응이 유지되는 채널 확인',
+    check: '강한 채널 기준으로 소재 재구성',
+    action: '소재 개선',
+  },
+];
+
+const analysisFocusRows = [
+  {
+    label: '소재 성과 비교',
+    metric: '플랫폼별 참여율',
+    status: '예산 배분 판단',
+  },
+  {
+    label: '광고 시점 등록',
+    metric: '캠페인 날짜·URL',
+    status: '구매 추이와 연결',
+  },
+  {
+    label: '판매채널 반응',
+    metric: '구매·랭킹 추이',
+    status: '채널별 효율 확인',
+  },
+  {
+    label: '가격·혜택 혼선',
+    metric: '할인·쿠폰·증정',
+    status: '해석 주의',
+  },
+];
+
+const insightProducts = MOCK_PRODUCTS.slice(0, 6).map((product, index) => ({
   product,
-  leading: ['유튜브 리뷰 영상', '인스타 릴스', '메타 리타겟팅', '쇼츠 체험단'][index],
-  lagging: ['올리브영 구매 +28%', '쿠팡 구매 +19%', '네이버 검색전환 +14%', '올리브영 랭킹 +5'][index],
-  action: ['예산 증액', '소재 복제', '랜딩 개선', '리뷰 확보'][index],
+  leading: ['리뷰 콘텐츠 반응', '숏폼 소재 반응', '리타겟팅 클릭', '콘텐츠 저장 반응', '소재 클릭 유지', '영상 완주율 개선'][index],
+  lagging: ['올리브영 랭킹 변화', '쿠팡 구매 반응', '네이버 상품 상세 유입', '올리브영 구매 반응', '채널별 구매 반응', '리뷰 수 변화'][index],
+  action: ['예산 검토', '소재 확장', '상세 점검', '리뷰 확보', '채널 조정', '혜택 점검'][index],
 }));
 
-const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick, onFeatureOpen, onOpenServiceMap }) => {
+const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick }) => {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
       <section className="bg-gray-900 rounded-[2rem] p-6 md:p-8 text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 w-80 h-80 bg-[#6dec13]/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3"></div>
-        <div className="relative z-10 flex flex-col xl:flex-row xl:items-end justify-between gap-8">
+        <div className="relative z-10">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#6dec13]/15 text-[#6dec13] rounded-full text-[11px] font-black uppercase tracking-widest mb-5">
               <CheckCircle2 className="w-3.5 h-3.5" />
               요약 대시보드
             </div>
             <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-4">
-              흩어진 시그널을 하나의 브랜드 성장 스토리로 연결합니다.
+              담당 브랜드 전체의 광고와 판매 반응을 요약합니다.
             </h2>
             <p className="max-w-3xl text-sm md:text-base font-bold text-gray-300 leading-relaxed">
-              콘텐츠, 커머스, 소비자 데이터를 연결하여 브랜드 성장 흐름을 분석하는
-              Marketing Growth Intelligence Platform입니다.
+              상품별 광고 집행, 소재 반응, 판매 채널 반응, 랭킹 변화를 합산해서 브랜드 단위로 확인합니다.
             </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3 min-w-full xl:min-w-[420px]">
-            <div className="bg-white/8 border border-white/10 rounded-2xl p-4">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">오늘의 판단</p>
-              <p className="mt-2 text-xl font-black text-[#6dec13]">유튜브 예산 증액</p>
-            </div>
-            <div className="bg-white/8 border border-white/10 rounded-2xl p-4">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">주의 상품</p>
-              <p className="mt-2 text-xl font-black text-orange-300">3개</p>
-            </div>
           </div>
         </div>
       </section>
@@ -166,7 +201,7 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick, onF
                   <Icon className="w-5 h-5" />
                 </div>
               </div>
-              <p className="mt-4 text-xs font-black text-[#2a4519]">{card.delta} vs 전주</p>
+              <p className="mt-4 text-xs font-black text-[#2a4519]">{card.delta}</p>
             </div>
           );
         })}
@@ -176,8 +211,8 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick, onF
         <div className="xl:col-span-8 bg-white rounded-[2.5rem] border border-[#ecf3e7] p-8 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
-              <h3 className="text-2xl font-black text-gray-900">광고비와 구매 매출 흐름</h3>
-              <p className="text-sm font-bold text-gray-400 mt-1">선행 집행 이후 후행 매출이 따라오는지 확인합니다.</p>
+              <h3 className="text-2xl font-black text-gray-900">광고비와 구매 반응 흐름</h3>
+              <p className="text-sm font-bold text-gray-400 mt-1">선행 집행 시점과 후행 구매 반응의 흐름을 함께 확인합니다.</p>
             </div>
             <div className="flex items-center gap-2 text-xs font-black text-[#6c9a4c] bg-[#6dec13]/10 rounded-xl px-3 py-2">
               <Radio className="w-4 h-4" />
@@ -198,7 +233,7 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick, onF
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 800, fill: '#6c9a4c' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 800, fill: '#6c9a4c' }} />
                 <Tooltip contentStyle={{ borderRadius: 16, border: '1px solid #ecf3e7', fontWeight: 800 }} />
-                <Area type="monotone" dataKey="revenue" name="구매 매출" stroke="#6dec13" strokeWidth={4} fill="url(#summaryRevenue)" />
+                <Area type="monotone" dataKey="revenue" name="구매 반응" stroke="#6dec13" strokeWidth={4} fill="url(#summaryRevenue)" />
                 <Area type="monotone" dataKey="spend" name="광고비" stroke="#111827" strokeWidth={3} fill="transparent" strokeDasharray="7 6" />
               </AreaChart>
             </ResponsiveContainer>
@@ -211,8 +246,8 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick, onF
               <BarChart3 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-gray-900">판매 채널 매출</h3>
-              <p className="text-xs font-bold text-gray-400">단위: 만원</p>
+              <h3 className="text-xl font-black text-gray-900">판매 채널 반응</h3>
+              <p className="text-xs font-bold text-gray-400">채널별 구매 금액 기준</p>
             </div>
           </div>
           <div className="h-[285px]">
@@ -228,108 +263,147 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick, onF
         </div>
       </section>
 
-      <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {channelLinks.map((item) => (
-          <div key={`${item.source}-${item.target}`} className="bg-white rounded-2xl border border-[#ecf3e7] p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <span className="px-3 py-1.5 bg-gray-900 text-[#6dec13] rounded-xl text-xs font-black">{item.source}</span>
-                <ArrowRight className="w-4 h-4 text-gray-300" />
-                <span className="px-3 py-1.5 bg-[#6dec13]/15 text-[#2a4519] rounded-xl text-xs font-black">{item.target}</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3 mb-5">
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">광고비</p>
-                <p className="mt-1 font-black text-gray-900">{item.spend}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">구매</p>
-                <p className="mt-1 font-black text-gray-900">{item.conversion}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">ROAS</p>
-                <p className="mt-1 font-black text-gray-900">{item.roas}</p>
-              </div>
-            </div>
-            <p className="text-xs font-black text-[#6c9a4c] bg-[#f7f8f6] rounded-xl px-3 py-2">{item.status}</p>
+      <section className="bg-white rounded-[2.5rem] border border-[#ecf3e7] shadow-sm overflow-hidden">
+        <div className="p-6 lg:p-8 border-b border-[#ecf3e7] flex flex-col xl:flex-row xl:items-end justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">캠페인 요약</p>
+            <h3 className="mt-2 text-2xl font-black text-gray-900">캠페인별 요약</h3>
+            <p className="mt-2 text-sm font-bold text-gray-500 max-w-3xl">
+              광고 집행 단위로 선행 플랫폼과 판매 채널 반응을 함께 확인합니다.
+            </p>
           </div>
-        ))}
-      </section>
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">좌우 스크롤</span>
+        </div>
 
+        <div className="p-6 lg:p-8 overflow-x-auto">
+          <div className="flex gap-5 min-w-max snap-x snap-mandatory pb-1">
+            {campaignSummaries.map((item) => (
+              <article key={item.campaign} className="w-[320px] md:w-[380px] snap-start rounded-2xl border border-[#ecf3e7] bg-[#f7f8f6] p-6">
+                <div className="flex items-start justify-between gap-4 mb-5">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">{item.period}</p>
+                    <h4 className="mt-2 text-xl font-black text-gray-900 leading-snug">{item.campaign}</h4>
+                  </div>
+                  <span className="shrink-0 px-3 py-1.5 bg-white border border-[#ecf3e7] text-xs font-black text-[#2a4519] rounded-xl">
+                    {item.nextAction}
+                  </span>
+                </div>
+
+                <p className="min-h-[60px] text-sm font-bold leading-relaxed text-gray-600">{item.summary}</p>
+
+                <div className="mt-6 grid grid-cols-3 gap-3">
+                  <div className="rounded-2xl bg-white border border-[#ecf3e7] p-3">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">광고비</p>
+                    <p className="mt-1 font-black text-gray-900">{item.spend}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white border border-[#ecf3e7] p-3">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">구매 반응</p>
+                    <p className="mt-1 font-black text-gray-900">{item.purchase}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white border border-[#ecf3e7] p-3">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">ROAS</p>
+                    <p className="mt-1 font-black text-gray-900">{item.roas}</p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
       <section className="bg-white rounded-[2.5rem] border border-[#ecf3e7] shadow-sm overflow-hidden">
         <div className="p-6 lg:p-8 border-b border-[#ecf3e7] flex flex-col xl:flex-row xl:items-end justify-between gap-5">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">Feature Map</p>
-            <h3 className="mt-2 text-2xl font-black text-gray-900">기능 페이지 바로가기</h3>
+            <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">상품별 연결 현황</p>
+            <h3 className="mt-2 text-2xl font-black text-gray-900">광고 집행과 판매 반응을 상품별로 묶어 봅니다</h3>
             <p className="mt-2 text-sm font-bold text-gray-500 max-w-3xl">
-              선행 신호를 보는 기능과 후행 구매 결과를 보는 기능을 업무 단위 페이지로 분리했습니다.
+              브랜드 전체를 보되, 원인 확인은 상품 단위로 내려가서 볼 수 있게 정리합니다.
             </p>
           </div>
-          <button
-            onClick={onOpenServiceMap}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gray-900 px-5 text-sm font-black text-[#6dec13] hover:bg-black"
-          >
-            <Layers3 className="h-4 w-4" />
-            서비스 기능 전체 맵
-          </button>
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">상품별 합산</span>
         </div>
 
-        <div className="p-6 lg:p-8 grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <div className="rounded-[2rem] bg-[#f7f8f6] border border-[#ecf3e7] p-5">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
-                <Radio className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-lg font-black text-gray-900">선행지표 기능</h4>
-                <p className="text-xs font-bold text-gray-400">콘텐츠·광고·크리에이터</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {mediaFeatureCards.map((feature) => (
-                <button
-                  key={feature.id}
-                  onClick={() => onFeatureOpen(feature.id)}
-                  className="group text-left rounded-2xl bg-white border border-[#ecf3e7] p-4 hover:bg-[#6dec13]/10 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-black text-gray-900">{feature.title}</p>
-                      <p className="mt-1 text-[11px] font-bold text-gray-500 line-clamp-2">{feature.description}</p>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-gray-900 shrink-0" />
+        <div className="p-6 lg:p-8 grid grid-cols-1 xl:grid-cols-12 gap-6">
+          <div className="xl:col-span-7 rounded-[2rem] bg-[#f7f8f6] border border-[#ecf3e7] overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+                    <Radio className="w-5 h-5" />
                   </div>
-                </button>
-              ))}
+                  <div>
+                    <h4 className="text-lg font-black text-gray-900">광고 집행 확인</h4>
+                    <p className="text-xs font-bold text-gray-400">광고비, 플랫폼, 소재 반응</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {analysisFocusRows.slice(0, 2).map((row) => (
+                    <div key={row.label} className="rounded-2xl bg-white border border-[#ecf3e7] p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-black text-gray-900">{row.label}</p>
+                          <p className="mt-1 text-[11px] font-bold text-gray-500">{row.metric}</p>
+                        </div>
+                        <span className="shrink-0 text-[10px] font-black text-[#6c9a4c]">{row.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="hidden md:flex items-center justify-center px-2">
+                <div className="w-10 h-10 rounded-full bg-white border border-[#ecf3e7] flex items-center justify-center text-gray-300">
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+              </div>
+
+              <div className="p-6 border-t md:border-t-0 md:border-l border-[#ecf3e7]">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-[#6dec13]/15 text-[#2a4519] flex items-center justify-center">
+                    <ShoppingBag className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-black text-gray-900">판매 반응 확인</h4>
+                    <p className="text-xs font-bold text-gray-400">구매 반응, 랭킹, 가격 변수</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {analysisFocusRows.slice(2).map((row) => (
+                    <div key={row.label} className="rounded-2xl bg-white border border-[#ecf3e7] p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-black text-gray-900">{row.label}</p>
+                          <p className="mt-1 text-[11px] font-bold text-gray-500">{row.metric}</p>
+                        </div>
+                        <span className="shrink-0 text-[10px] font-black text-[#6c9a4c]">{row.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-[2rem] bg-[#f7f8f6] border border-[#ecf3e7] p-5">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-[#6dec13]/15 text-[#2a4519] flex items-center justify-center">
-                <ShoppingBag className="w-5 h-5" />
-              </div>
+          <div className="xl:col-span-5 rounded-[2rem] bg-gray-900 p-6 text-white">
+            <div className="flex items-center justify-between gap-3 mb-5">
               <div>
-                <h4 className="text-lg font-black text-gray-900">후행지표 기능</h4>
-                <p className="text-xs font-bold text-gray-400">랭킹·구매 반응·리뷰 반응</p>
+                <h4 className="text-lg font-black">상품군별 점검 항목</h4>
+                <p className="mt-1 text-xs font-bold text-gray-400">브랜드 전체에서 먼저 확인할 상품군입니다.</p>
               </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#6dec13]">3건</span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {commerceFeatureCards.map((feature) => (
-                <button
-                  key={feature.id}
-                  onClick={() => onFeatureOpen(feature.id)}
-                  className="group text-left rounded-2xl bg-white border border-[#ecf3e7] p-4 hover:bg-[#6dec13]/10 transition-colors"
-                >
+            <div className="space-y-3">
+              {brandWorkflowRows.map((row) => (
+                <div key={row.title} className="rounded-2xl bg-white/8 border border-white/10 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-black text-gray-900">{feature.title}</p>
-                      <p className="mt-1 text-[11px] font-bold text-gray-500 line-clamp-2">{feature.description}</p>
+                      <p className="text-sm font-black text-white">{row.title}</p>
+                      <p className="mt-2 text-xs font-bold text-gray-300">{row.leading}</p>
+                      <p className="mt-1 text-xs font-bold text-gray-300">{row.commerce}</p>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-gray-900 shrink-0" />
+                    <span className="shrink-0 rounded-lg bg-[#6dec13] px-2.5 py-1 text-[10px] font-black text-gray-900">{row.action}</span>
                   </div>
-                </button>
+                  <p className="mt-3 text-[11px] font-black text-orange-200">{row.check}</p>
+                </div>
               ))}
             </div>
           </div>
@@ -339,8 +413,8 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick, onF
       <section className="bg-white rounded-[2.5rem] border border-[#ecf3e7] shadow-sm overflow-hidden">
         <div className="p-8 border-b border-[#ecf3e7] flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h3 className="text-2xl font-black text-gray-900">우선 대응 상품</h3>
-            <p className="text-sm font-bold text-gray-400 mt-1">선행 신호와 후행 구매 결과를 같이 보고 다음 액션을 정합니다.</p>
+            <h3 className="text-2xl font-black text-gray-900">상품별 광고·판매 연결 현황</h3>
+            <p className="text-sm font-bold text-gray-400 mt-1">각 상품의 광고 반응, 판매 반응, 다음 작업을 브랜드 전체 관점에서 봅니다.</p>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -348,8 +422,8 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick, onF
             <thead>
               <tr className="bg-[#f7f8f6]">
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">상품</th>
-                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">선행 신호</th>
-                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">후행 결과</th>
+                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">광고 반응</th>
+                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">판매 반응</th>
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c] text-right">권장 액션</th>
               </tr>
             </thead>
@@ -377,82 +451,6 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick, onF
         </div>
       </section>
 
-      <details className="group bg-white rounded-[2rem] border border-[#ecf3e7] shadow-sm overflow-hidden">
-        <summary className="cursor-pointer list-none p-6 flex items-center justify-between gap-4">
-          <div>
-            <h3 className="text-xl font-black text-gray-900">기획 상세 보기</h3>
-            <p className="mt-1 text-sm font-bold text-gray-400">서비스 구조, 해결 문제, 로드맵, 리포트 후보</p>
-          </div>
-          <span className="px-3 py-2 rounded-xl bg-[#f7f8f6] text-xs font-black text-[#6c9a4c] group-open:bg-[#6dec13] group-open:text-gray-900">
-            펼치기
-          </span>
-        </summary>
-
-        <div className="px-6 pb-6 space-y-6">
-          <section className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            <div className="xl:col-span-7 bg-[#f7f8f6] border border-[#ecf3e7] rounded-[2rem] p-6">
-              <h3 className="text-xl font-black text-gray-900 mb-5">통합 분석 구조</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {servicePrinciples.map((item) => (
-                  <div key={item.title} className="bg-white rounded-2xl p-5 border border-[#ecf3e7]">
-                    <h4 className="font-black text-gray-900 mb-2">{item.title}</h4>
-                    <p className="text-xs font-bold text-gray-500 leading-relaxed mb-4">{item.description}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {item.metrics.slice(0, 4).map((metric) => (
-                        <span key={metric} className="px-2 py-1 bg-[#f7f8f6] rounded-lg text-[10px] font-black text-[#6c9a4c] border border-[#ecf3e7]">
-                          {metric}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="xl:col-span-5 bg-[#f7f8f6] border border-[#ecf3e7] rounded-[2rem] p-6">
-              <h3 className="text-xl font-black text-gray-900 mb-5">해결해야 하는 문제</h3>
-              <div className="space-y-3">
-                {serviceProblems.map((problem, index) => (
-                  <div key={problem} className="flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-lg bg-[#6dec13]/15 text-[#2a4519] flex items-center justify-center text-[10px] font-black shrink-0">
-                      {index + 1}
-                    </span>
-                    <p className="text-sm font-bold text-gray-600 leading-relaxed">{problem}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            <div className="xl:col-span-7 bg-[#f7f8f6] rounded-[2rem] border border-[#ecf3e7] p-6">
-              <h3 className="text-xl font-black text-gray-900 mb-5">구현 로드맵</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {roadmapItems.map((item) => (
-                  <div key={item.phase} className="rounded-2xl border border-[#ecf3e7] p-5 bg-white">
-                    <div className="flex items-center justify-between gap-3 mb-3">
-                      <span className="text-xs font-black text-[#6c9a4c]">{item.phase}</span>
-                      <span className="px-2 py-1 rounded-lg bg-[#f7f8f6] text-[10px] font-black text-gray-500 border border-[#ecf3e7]">{item.status}</span>
-                    </div>
-                    <p className="text-sm font-black text-gray-900 leading-relaxed">{item.title}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="xl:col-span-5 bg-[#f7f8f6] rounded-[2rem] border border-[#ecf3e7] p-6">
-              <h3 className="text-xl font-black text-gray-900 mb-5">자동화 리포트 후보</h3>
-              <div className="flex flex-wrap gap-2">
-                {reportTemplates.map((template) => (
-                  <span key={template} className="px-3 py-2 rounded-xl bg-gray-900 text-[#6dec13] text-xs font-black">
-                    {template}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </section>
-        </div>
-      </details>
     </div>
   );
 };
