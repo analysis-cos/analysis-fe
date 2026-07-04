@@ -40,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({ onLogoClick, onNavigate }) => {
             <Search className="absolute left-4 w-5 h-5 text-[#6c9a4c]" />
             <input
               className="w-full h-10 pl-12 pr-4 bg-[#ecf3e7] border-none rounded-lg focus:ring-2 focus:ring-[#6dec13]/50 placeholder-[#6c9a4c] text-sm"
-              placeholder="브랜드, 상품명 또는 카테고리를 검색하세요..."
+              placeholder="캠페인, 상품명 또는 판매 채널을 검색하세요..."
               type="text"
             />
           </label>
@@ -78,19 +78,19 @@ const Header: React.FC<HeaderProps> = ({ onLogoClick, onNavigate }) => {
                     onClick={() => { onNavigate?.('dashboard'); setIsMenuOpen(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-[#6dec13]/10 hover:text-[#2a4519] rounded-xl transition-colors"
                   >
-                    <LayoutDashboard className="w-4 h-4" /> 종합 대시보드
-                  </button>
-                  <button 
-                    onClick={() => { onNavigate?.('my-brand'); setIsMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-[#6dec13]/10 hover:text-[#2a4519] rounded-xl transition-colors"
-                  >
-                    <Store className="w-4 h-4" /> 나의 브랜드관
+                    <LayoutDashboard className="w-4 h-4" /> 요약 대시보드
                   </button>
                   <button 
                     onClick={() => { onNavigate?.('ad-analytics'); setIsMenuOpen(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-[#6dec13]/10 hover:text-[#2a4519] rounded-xl transition-colors"
                   >
-                    <Youtube className="w-4 h-4" /> 광고분석관
+                    <Youtube className="w-4 h-4" /> 선행지표 분석관
+                  </button>
+                  <button 
+                    onClick={() => { onNavigate?.('my-brand'); setIsMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-[#6dec13]/10 hover:text-[#2a4519] rounded-xl transition-colors"
+                  >
+                    <Store className="w-4 h-4" /> 후행지표 분석관
                   </button>
                 </div>
                 <div className="p-2 border-t border-[#ecf3e7]">

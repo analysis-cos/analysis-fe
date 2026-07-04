@@ -75,18 +75,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentView }) => {
             }`}
           >
             <LayoutDashboard className="w-4 h-4" />
-            <span>종합 대시보드</span>
-          </button>
-          <button 
-            onClick={() => onNavigate?.('my-brand')}
-            className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl text-sm font-black transition-all ${
-              currentView === 'my-brand' 
-                ? 'bg-[#6dec13] text-gray-900 shadow-lg shadow-[#6dec13]/20' 
-                : 'text-gray-500 hover:bg-[#ecf3e7] hover:text-gray-900'
-            }`}
-          >
-            <Store className="w-4 h-4" />
-            <span>나의 브랜드관</span>
+            <span>요약 대시보드</span>
           </button>
           <button 
             onClick={() => onNavigate?.('ad-analytics')}
@@ -97,11 +86,22 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentView }) => {
             }`}
           >
             <Youtube className="w-4 h-4" />
-            <span>광고분석관</span>
+            <span>선행지표 분석관</span>
+          </button>
+          <button 
+            onClick={() => onNavigate?.('my-brand')}
+            className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl text-sm font-black transition-all ${
+              currentView === 'my-brand' 
+                ? 'bg-[#6dec13] text-gray-900 shadow-lg shadow-[#6dec13]/20' 
+                : 'text-gray-500 hover:bg-[#ecf3e7] hover:text-gray-900'
+            }`}
+          >
+            <Store className="w-4 h-4" />
+            <span>후행지표 분석관</span>
           </button>
         </div>
       </div>
-        <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#6c9a4c] mb-4">상세 필터</h3>
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#6c9a4c] mb-4">공통 분석 필터</h3>
         
         {/* Category Filter */}
         <FilterSection 
@@ -176,7 +176,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentView }) => {
           onToggle={() => toggleSection('rank')}
         >
           <div className="space-y-3 pr-2">
-            <p className="text-[10px] text-gray-400 font-bold leading-tight">분석하고 싶은 순위 구간을 직접 입력하세요.</p>
+          <p className="text-[10px] text-gray-400 font-bold leading-tight">커머스 랭킹 또는 키워드 순위 구간을 직접 입력하세요.</p>
             <div className="flex items-center gap-2">
               <input type="number" placeholder="1" className="w-full bg-[#f7f8f6] border-none rounded-lg text-[11px] font-bold p-2 focus:ring-1 focus:ring-[#6dec13]" />
               <span className="text-gray-300 font-bold">~</span>
@@ -197,10 +197,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentView }) => {
         <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#6c9a4c] mb-4">정렬 기준</h3>
         <div className="relative">
           <select className="w-full bg-[#f7f8f6] border-none rounded-lg text-sm font-semibold text-gray-700 py-2.5 pl-3 pr-8 appearance-none focus:ring-2 focus:ring-[#6dec13]/50">
-            <option>현재 순위순</option>
-            <option>급상승순</option>
-            <option>급하락순</option>
-            <option>가격 낮은순</option>
+            <option>통합 영향도순</option>
+            <option>미디어 반응 급상승순</option>
+            <option>커머스 랭킹 급상승순</option>
+            <option>리뷰 반응 변화순</option>
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6c9a4c] pointer-events-none" />
         </div>

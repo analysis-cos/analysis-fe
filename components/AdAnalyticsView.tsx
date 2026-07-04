@@ -1,361 +1,531 @@
-
-import React, { useState, useMemo } from 'react';
-import { Youtube, TrendingUp, ThumbsUp, MessageCircle, Eye, Calendar, Loader2, Sparkles, Plus, ExternalLink, Play, ChevronRight, Info, Clock } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import {
+  ArrowUpRight,
+  Calendar,
+  Eye,
+  Instagram,
+  MousePointerClick,
+  Plus,
+  Radio,
+  Sparkles,
+  ThumbsUp,
+  Video,
+  WalletCards,
+  Youtube,
+} from 'lucide-react';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { MOCK_PRODUCTS } from '../constants';
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, ReferenceLine, Label } from 'recharts';
+import OliveYoungCommercePanel from '../features/commerce/oliveyoung/components/OliveYoungCommercePanel';
+import { mediaFeatureCards } from '../brandDashPlan';
+import type { FeaturePageId } from '../brandDashPlan';
 
-interface VideoAd {
-  id: string;
-  url: string;
-  title: string;
-  channel: string;
-  views: string;
-  likes: string;
-  comments: string;
-  uploadDate: string; // "MM.DD" or "HH:00" format depending on range
-  thumbnail: string;
-  index: number;
+type Platform = 'YouTube' | 'Instagram' | 'Meta Ads' | 'TikTok';
+
+interface AdAnalyticsViewProps {
+  onFeatureOpen: (featureId: FeaturePageId) => void;
 }
 
-type TimeRange = '24h' | '7d' | '30d' | '90d';
+interface Campaign {
+  id: string;
+  platform: Platform;
+  productRank: number;
+  name: string;
+  creative: string;
+  url: string;
+  spend: number;
+  impressions: number;
+  clicks: number;
+  engagements: number;
+  startDate: string;
+  targetChannel: string;
+}
 
-const AdAnalyticsView: React.FC = () => {
-  const [url, setUrl] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState(MOCK_PRODUCTS[0].rank);
-  const [hoveredAdId, setHoveredAdId] = useState<string | null>(null);
-  const [timeRange, setTimeRange] = useState<TimeRange>('30d');
-  
-  // 광고 데이터 (업로드 날짜는 선택된 범위에 따라 매칭되도록 데모 구성)
-  const [adsData, setAdsData] = useState<Record<number, VideoAd[]>>({
-    1: [
-      {
-        id: 'yt1',
-        url: 'https://www.youtube.com/watch?v=sample1',
-        title: "올리브영 1위 에센스! 7일 사용 리얼 후기 (feat. COSRX)",
-        channel: "뷰티로그 BeautyLog",
-        views: "128,450",
-        likes: "4.2k",
-        comments: "856",
-        uploadDate: "03.10",
-        thumbnail: "https://picsum.photos/seed/yt1/640/360",
-        index: 1
-      },
-      {
-        id: 'yt2',
-        url: 'https://www.youtube.com/watch?v=sample2',
-        title: "환절기 필수템! 코스알엑스 스네일 라인 전제품 리뷰",
-        channel: "스킨케어 마스터",
-        views: "45,200",
-        likes: "1.5k",
-        comments: "230",
-        uploadDate: "03.25",
-        thumbnail: "https://picsum.photos/seed/yt2/640/360",
-        index: 2
-      }
-    ]
+const platformIcons: Record<Platform, React.ReactNode> = {
+  YouTube: <Youtube className="w-4 h-4" />,
+  Instagram: <Instagram className="w-4 h-4" />,
+  'Meta Ads': <Radio className="w-4 h-4" />,
+  TikTok: <Video className="w-4 h-4" />,
+};
+
+const initialCampaigns: Campaign[] = [
+  {
+    id: 'c-yt-1',
+    platform: 'YouTube',
+    productRank: 1,
+    name: '메디힐 7일 사용 리뷰',
+    creative: '롱폼 리뷰 영상',
+    url: 'https://www.youtube.com/watch?v=sample1',
+    spend: 7800000,
+    impressions: 428000,
+    clicks: 18240,
+    engagements: 12450,
+    startDate: '01.08',
+    targetChannel: '올리브영',
+  },
+  {
+    id: 'c-ig-1',
+    platform: 'Instagram',
+    productRank: 2,
+    name: '에스트라 크림 릴스 캠페인',
+    creative: '릴스 체험단',
+    url: 'https://www.instagram.com/reel/sample',
+    spend: 4200000,
+    impressions: 318000,
+    clicks: 11620,
+    engagements: 22100,
+    startDate: '01.10',
+    targetChannel: '쿠팡',
+  },
+  {
+    id: 'c-meta-1',
+    platform: 'Meta Ads',
+    productRank: 6,
+    name: '메디큐브 리타겟팅',
+    creative: '전환 최적화 배너',
+    url: 'https://ads.example.com/meta',
+    spend: 3600000,
+    impressions: 226000,
+    clicks: 8840,
+    engagements: 6120,
+    startDate: '01.12',
+    targetChannel: '네이버',
+  },
+  {
+    id: 'c-tt-1',
+    platform: 'TikTok',
+    productRank: 7,
+    name: '달바 미스트 숏폼',
+    creative: '15초 사용감 영상',
+    url: 'https://www.tiktok.com/@sample/video/1',
+    spend: 2800000,
+    impressions: 372000,
+    clicks: 9540,
+    engagements: 18300,
+    startDate: '01.14',
+    targetChannel: '올리브영',
+  },
+];
+
+const trendData = [
+  { day: '01.08', spend: 210, impressions: 58, clicks: 2.1 },
+  { day: '01.09', spend: 260, impressions: 72, clicks: 2.8 },
+  { day: '01.10', spend: 340, impressions: 96, clicks: 3.9 },
+  { day: '01.11', spend: 310, impressions: 88, clicks: 3.4 },
+  { day: '01.12', spend: 420, impressions: 118, clicks: 4.6 },
+  { day: '01.13', spend: 510, impressions: 142, clicks: 5.8 },
+  { day: '01.14', spend: 560, impressions: 168, clicks: 6.2 },
+];
+
+function formatCurrency(value: number) {
+  if (value >= 1000000) return `₩${(value / 1000000).toFixed(1)}M`;
+  return `₩${Math.round(value / 10000)}만`;
+}
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat('ko-KR').format(value);
+}
+
+const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ onFeatureOpen }) => {
+  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
+  const [activePlatform, setActivePlatform] = useState<Platform | '전체'>('전체');
+  const [selectedProductRank, setSelectedProductRank] = useState(MOCK_PRODUCTS[0].rank);
+  const [newUrl, setNewUrl] = useState('');
+  const [newPlatform, setNewPlatform] = useState<Platform>('YouTube');
+  const [newSpend, setNewSpend] = useState('1200000');
+
+  const filteredCampaigns = useMemo(() => {
+    return campaigns.filter((campaign) => {
+      const platformMatched = activePlatform === '전체' || campaign.platform === activePlatform;
+      return platformMatched && campaign.productRank === selectedProductRank;
+    });
+  }, [campaigns, activePlatform, selectedProductRank]);
+
+  const selectedProduct = MOCK_PRODUCTS.find((product) => product.rank === selectedProductRank) ?? MOCK_PRODUCTS[0];
+  const allForProduct = campaigns.filter((campaign) => campaign.productRank === selectedProductRank);
+
+  const totals = allForProduct.reduce(
+    (acc, campaign) => ({
+      spend: acc.spend + campaign.spend,
+      impressions: acc.impressions + campaign.impressions,
+      clicks: acc.clicks + campaign.clicks,
+      engagements: acc.engagements + campaign.engagements,
+    }),
+    { spend: 0, impressions: 0, clicks: 0, engagements: 0 }
+  );
+
+  const platformData = (['YouTube', 'Instagram', 'Meta Ads', 'TikTok'] as Platform[]).map((platform) => {
+    const platformCampaigns = allForProduct.filter((campaign) => campaign.platform === platform);
+    return {
+      platform,
+      spend: platformCampaigns.reduce((sum, campaign) => sum + campaign.spend / 10000, 0),
+      clicks: platformCampaigns.reduce((sum, campaign) => sum + campaign.clicks, 0),
+    };
   });
 
-  const handleAnalyze = () => {
-    if (!url) return;
-    setIsAnalyzing(true);
-    
-    setTimeout(() => {
-      const currentAds = adsData[selectedProductId] || [];
-      const newAd: VideoAd = {
-        id: `yt-${Date.now()}`,
-        url: url,
-        title: "새롭게 분석된 마케팅 영상 (AI 분석 완료)",
-        channel: "신규 크리에이터",
-        views: "12,000",
-        likes: "450",
-        comments: "88",
-        uploadDate: timeRange === '24h' ? "14:00" : "03.30",
-        thumbnail: `https://picsum.photos/seed/${Date.now()}/640/360`,
-        index: currentAds.length + 1
-      };
+  const handleAddCampaign = () => {
+    if (!newUrl.trim()) return;
 
-      setAdsData(prev => ({
-        ...prev,
-        [selectedProductId]: [...(prev[selectedProductId] || []), newAd]
-      }));
-      
-      setUrl('');
-      setIsAnalyzing(false);
-    }, 1500);
-  };
+    const spend = Number(newSpend) || 0;
+    const nextCampaign: Campaign = {
+      id: `c-${Date.now()}`,
+      platform: newPlatform,
+      productRank: selectedProductRank,
+      name: `${selectedProduct.brand} 신규 ${newPlatform} 캠페인`,
+      creative: newPlatform === 'Instagram' ? '릴스 소재' : newPlatform === 'YouTube' ? '영상 리뷰' : '전환 광고 소재',
+      url: newUrl,
+      spend,
+      impressions: Math.max(24000, Math.round(spend / 16)),
+      clicks: Math.max(780, Math.round(spend / 420)),
+      engagements: Math.max(1200, Math.round(spend / 220)),
+      startDate: '오늘',
+      targetChannel: '올리브영',
+    };
 
-  const currentAds = adsData[selectedProductId] || [];
-  const selectedProduct = MOCK_PRODUCTS.find(p => p.rank === selectedProductId) || MOCK_PRODUCTS[0];
-
-  // 시간 범위에 따른 차트 데이터 생성
-  const chartData = useMemo(() => {
-    switch (timeRange) {
-      case '24h':
-        return [
-          { day: '00:00', rank: 15 }, { day: '04:00', rank: 14 }, { day: '08:00', rank: 16 }, 
-          { day: '12:00', rank: 12 }, { day: '16:00', rank: 10 }, { day: '20:00', rank: 9 }, { day: '24:00', rank: 8 }
-        ];
-      case '7d':
-        return [
-          { day: '03.25', rank: 12 }, { day: '03.26', rank: 10 }, { day: '03.27', rank: 11 }, 
-          { day: '03.28', rank: 9 }, { day: '03.29', rank: 7 }, { day: '03.30', rank: 6 }, { day: '03.31', rank: 5 }
-        ];
-      case '90d':
-        return [
-          { day: '01.10', rank: 45 }, { day: '02.10', rank: 30 }, { day: '03.10', rank: 15 }, 
-          { day: '03.25', rank: 12 }, { day: '04.10', rank: 5 }
-        ];
-      default: // 30d
-        return [
-          { day: '03.01', rank: 18 }, { day: '03.05', rank: 17 }, { day: '03.10', rank: 15 }, 
-          { day: '03.15', rank: 10 }, { day: '03.20', rank: 8 }, { day: '03.25', rank: 12 }, 
-          { day: '03.30', rank: 5 }, { day: '04.05', rank: 2 }
-        ];
-    }
-  }, [timeRange]);
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const eventAd = currentAds.find(ad => ad.uploadDate === label);
-      return (
-        <div className="bg-white p-4 rounded-3xl shadow-2xl border border-[#ecf3e7] min-w-[220px] animate-in zoom-in-95 duration-200">
-          <p className="text-sm font-black text-gray-900 mb-2">{label} 분석 결과</p>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-2 h-2 rounded-full bg-[#6dec13]"></div>
-            <p className="text-xs font-bold text-gray-600">현재 순위: <span className="text-gray-900">{payload[0].value}위</span></p>
-          </div>
-          {eventAd && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded">광고 [{eventAd.index}]</span>
-                <span className="text-[10px] font-bold text-red-500">마케팅 시점</span>
-              </div>
-              <div className="flex gap-2">
-                <img src={eventAd.thumbnail} className="w-14 h-10 rounded-lg object-cover border border-gray-100" />
-                <div className="flex-1">
-                  <p className="text-[10px] font-black text-gray-800 line-clamp-1">{eventAd.title}</p>
-                  <p className="text-[9px] font-bold text-gray-400">{eventAd.channel}</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-    return null;
+    setCampaigns((prev) => [nextCampaign, ...prev]);
+    setNewUrl('');
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
+      <section className="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
         <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 shadow-sm border border-red-100">
-              <Youtube className="w-6 h-6" />
-            </div>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight">광고 성과 분석관</h2>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 text-red-600 rounded-full text-[11px] font-black uppercase tracking-widest mb-4">
+            <Sparkles className="w-3.5 h-3.5" />
+            선행지표 분석관
           </div>
-          <p className="text-gray-500 font-bold">광고 캠페인과 시장 순위의 명확한 상관관계를 추적합니다.</p>
+          <h2 className="text-4xl font-black text-gray-900 tracking-tight">광고를 어디에, 얼마나, 어떻게 집행했는지 봅니다.</h2>
+          <p className="mt-3 text-sm font-bold text-gray-500 max-w-3xl">
+            YouTube, Instagram, Meta Ads, TikTok 캠페인의 집행 금액과 노출, 클릭, 참여 신호를 상품 단위로 추적합니다.
+          </p>
         </div>
 
-        <div className="bg-white p-2 rounded-2xl border border-[#ecf3e7] shadow-sm flex items-center gap-4">
-          <div className="flex items-center gap-3 pl-4">
-            <span className="text-xs font-black text-gray-400 uppercase tracking-widest">분석 상품</span>
-            <select 
-              value={selectedProductId}
-              onChange={(e) => setSelectedProductId(Number(e.target.value))}
-              className="bg-gray-50 border-none rounded-xl text-sm font-black px-4 py-2 focus:ring-2 focus:ring-[#6dec13]/50 outline-none min-w-[200px]"
+        <div className="bg-white p-2 rounded-2xl border border-[#ecf3e7] shadow-sm flex flex-col sm:flex-row sm:items-center gap-3">
+          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">분석 상품</span>
+          <select
+            value={selectedProductRank}
+            onChange={(e) => setSelectedProductRank(Number(e.target.value))}
+            className="bg-gray-50 border-none rounded-xl text-sm font-black px-4 py-2 focus:ring-2 focus:ring-[#6dec13]/50 outline-none min-w-[260px]"
+          >
+            {MOCK_PRODUCTS.slice(0, 10).map((product) => (
+              <option key={product.rank} value={product.rank}>
+                #{product.rank} {product.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 md:grid-cols-4 gap-5">
+        <div className="bg-white rounded-2xl border border-[#ecf3e7] p-5 shadow-sm">
+          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+            <WalletCards className="w-5 h-5" />
+          </div>
+          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">총 집행 금액</p>
+          <p className="mt-2 text-3xl font-black text-gray-900">{formatCurrency(totals.spend)}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-[#ecf3e7] p-5 shadow-sm">
+          <div className="w-11 h-11 rounded-xl bg-[#6dec13]/15 text-[#2a4519] flex items-center justify-center mb-4">
+            <Eye className="w-5 h-5" />
+          </div>
+          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">총 노출</p>
+          <p className="mt-2 text-3xl font-black text-gray-900">{formatNumber(totals.impressions)}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-[#ecf3e7] p-5 shadow-sm">
+          <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-4">
+            <MousePointerClick className="w-5 h-5" />
+          </div>
+          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">총 클릭</p>
+          <p className="mt-2 text-3xl font-black text-gray-900">{formatNumber(totals.clicks)}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-[#ecf3e7] p-5 shadow-sm">
+          <div className="w-11 h-11 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center mb-4">
+            <ThumbsUp className="w-5 h-5" />
+          </div>
+          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">참여율</p>
+          <p className="mt-2 text-3xl font-black text-gray-900">
+            {totals.impressions ? ((totals.engagements / totals.impressions) * 100).toFixed(1) : '0.0'}%
+          </p>
+        </div>
+      </section>
+
+      <section className="bg-white rounded-[2.5rem] border border-[#ecf3e7] shadow-sm overflow-hidden">
+        <div className="p-6 lg:p-8 border-b border-[#ecf3e7] flex flex-col xl:flex-row xl:items-end justify-between gap-5">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">Leading Feature Pages</p>
+            <h3 className="mt-2 text-2xl font-black text-gray-900">선행지표 기능 페이지</h3>
+            <p className="mt-2 text-sm font-bold text-gray-500 max-w-3xl">
+              콘텐츠 탐색, 키워드 레퍼런스, 크리에이터 분석처럼 실제 업무 단위로 들어가서 볼 수 있습니다.
+            </p>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">미디어 기능 01-07</span>
+        </div>
+
+        <div className="p-6 lg:p-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {mediaFeatureCards.map((feature) => (
+            <button
+              key={feature.id}
+              onClick={() => onFeatureOpen(feature.id)}
+              className="group text-left rounded-2xl border border-[#ecf3e7] bg-[#f7f8f6] p-5 hover:bg-[#6dec13]/10 hover:border-[#6dec13]/60 transition-all"
             >
-              {MOCK_PRODUCTS.map(p => (
-                <option key={p.rank} value={p.rank}>{p.name}</option>
-              ))}
-            </select>
-          </div>
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <span className="px-2.5 py-1 rounded-lg bg-white border border-[#ecf3e7] text-[10px] font-black text-[#6c9a4c]">
+                  {feature.sourceRows}
+                </span>
+                <ArrowUpRight className="w-4 h-4 text-gray-300 group-hover:text-gray-900 transition-colors" />
+              </div>
+              <h4 className="text-lg font-black text-gray-900">{feature.title}</h4>
+              <p className="mt-2 text-xs font-bold text-gray-500 leading-relaxed">{feature.description}</p>
+            </button>
+          ))}
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-        {/* Left Ad List */}
+      <section className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         <div className="xl:col-span-4 space-y-6">
           <div className="bg-white rounded-[2.5rem] border border-[#ecf3e7] p-8 shadow-sm">
             <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
-              <Plus className="w-5 h-5 text-[#6dec13]" /> 캠페인 추가
+              <Plus className="w-5 h-5 text-[#6dec13]" />
+              캠페인 추가
             </h3>
             <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  value={newPlatform}
+                  onChange={(e) => setNewPlatform(e.target.value as Platform)}
+                  className="h-12 bg-gray-50 border-none rounded-xl px-3 text-xs font-black focus:ring-2 focus:ring-[#6dec13]/50"
+                >
+                  {(['YouTube', 'Instagram', 'Meta Ads', 'TikTok'] as Platform[]).map((platform) => (
+                    <option key={platform} value={platform}>{platform}</option>
+                  ))}
+                </select>
+                <input
+                  value={newSpend}
+                  onChange={(e) => setNewSpend(e.target.value)}
+                  type="number"
+                  className="h-12 bg-gray-50 border-none rounded-xl px-3 text-xs font-black focus:ring-2 focus:ring-[#6dec13]/50"
+                  placeholder="집행 금액"
+                />
+              </div>
               <input
                 type="text"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="유튜브 영상 URL..."
+                value={newUrl}
+                onChange={(e) => setNewUrl(e.target.value)}
+                placeholder="광고 소재 URL"
                 className="w-full h-14 px-5 bg-gray-50 border-2 border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-[#6dec13] outline-none transition-all"
               />
               <button
-                onClick={handleAnalyze}
-                disabled={isAnalyzing || !url}
-                className="w-full h-14 bg-gray-900 text-[#6dec13] font-black rounded-2xl flex items-center justify-center gap-2 hover:bg-black transition-all shadow-xl"
+                onClick={handleAddCampaign}
+                disabled={!newUrl.trim()}
+                className="w-full h-14 bg-gray-900 text-[#6dec13] font-black rounded-2xl flex items-center justify-center gap-2 hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-xl"
               >
-                {isAnalyzing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                데이터 매칭하기
+                <Sparkles className="w-5 h-5" />
+                선행 데이터 등록
               </button>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest px-2">등록된 캠페인 ({currentAds.length})</h3>
-            {currentAds.length === 0 ? (
-              <div className="bg-gray-100/50 border-2 border-dashed border-gray-200 rounded-[2rem] p-12 text-center text-gray-400 font-bold">광고 정보가 없습니다.</div>
-            ) : (
-              currentAds.map(ad => (
-                <div 
-                  key={ad.id} 
-                  onMouseEnter={() => setHoveredAdId(ad.id)}
-                  onMouseLeave={() => setHoveredAdId(null)}
-                  className={`bg-white rounded-[2rem] border transition-all duration-300 overflow-hidden shadow-sm hover:shadow-xl group relative ${hoveredAdId === ad.id ? 'border-[#6dec13] ring-4 ring-[#6dec13]/5' : 'border-[#ecf3e7]'}`}
+          <div className="bg-white rounded-[2.5rem] border border-[#ecf3e7] p-8 shadow-sm">
+            <h3 className="text-lg font-black text-gray-900 mb-6">채널 필터</h3>
+            <div className="grid grid-cols-1 gap-2">
+              {(['전체', 'YouTube', 'Instagram', 'Meta Ads', 'TikTok'] as const).map((platform) => (
+                <button
+                  key={platform}
+                  onClick={() => setActivePlatform(platform)}
+                  className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm font-black transition-all ${
+                    activePlatform === platform ? 'bg-[#6dec13] text-gray-900' : 'bg-[#f7f8f6] text-gray-500 hover:text-gray-900'
+                  }`}
                 >
-                  <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-                    <span className="bg-gray-900 text-[#6dec13] text-[10px] font-black px-2.5 py-1 rounded-lg">광고 [{ad.index}]</span>
-                    <span className="bg-white/90 backdrop-blur-sm text-gray-600 text-[10px] font-black px-2.5 py-1 rounded-lg border border-gray-100">{ad.uploadDate}</span>
-                  </div>
-                  <div className="aspect-video relative overflow-hidden">
-                    <img src={ad.thumbnail} alt="thumb" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <a href={ad.url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white shadow-xl hover:scale-110 transition-transform"><Play className="w-6 h-6 fill-current" /></a>
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <h4 className="font-black text-gray-900 text-sm line-clamp-1 mb-1">{ad.title}</h4>
-                    <p className="text-[10px] font-bold text-gray-400 mb-4">{ad.channel}</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex gap-4">
-                        <div className="flex items-center gap-1"><Eye className="w-3 h-3 text-blue-500" /><span className="text-[11px] font-black text-gray-700">{ad.views}</span></div>
-                        <div className="flex items-center gap-1"><ThumbsUp className="w-3 h-3 text-red-500" /><span className="text-[11px] font-black text-gray-700">{ad.likes}</span></div>
-                      </div>
-                      <a href={ad.url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-blue-600 hover:underline flex items-center gap-1">유튜브 바로가기 <ExternalLink className="w-3 h-3" /></a>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+                  <span className="flex items-center gap-2">
+                    {platform === '전체' ? <Radio className="w-4 h-4" /> : platformIcons[platform]}
+                    {platform}
+                  </span>
+                  <span className="text-[10px]">
+                    {platform === '전체' ? allForProduct.length : allForProduct.filter((campaign) => campaign.platform === platform).length}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Right Analysis Content */}
         <div className="xl:col-span-8 space-y-6">
-          <div className="bg-white rounded-[3rem] border border-[#ecf3e7] p-8 md:p-10 shadow-sm relative overflow-hidden flex flex-col h-full">
-            {/* Range Selector */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 relative z-10">
+          <div className="bg-white rounded-[2.5rem] border border-[#ecf3e7] p-8 shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mb-8">
               <div>
-                <h3 className="text-2xl font-black text-gray-900 mb-1">통합 성과 리포트</h3>
-                <div className="flex items-center gap-2 text-sm font-bold text-[#6c9a4c]">
-                  <Clock className="w-4 h-4" />
-                  <span>분석 기간: {timeRange === '24h' ? '최근 24시간' : `최근 ${timeRange.replace('d', '일')}`}</span>
-                </div>
+                <h3 className="text-2xl font-black text-gray-900">집행 추이</h3>
+                <p className="mt-1 text-sm font-bold text-gray-400">광고비와 클릭 흐름을 같은 기간으로 봅니다.</p>
               </div>
-
-              <div className="flex p-1.5 bg-gray-50 rounded-2xl border border-gray-100">
-                {(['24h', '7d', '30d', '90d'] as const).map((r) => (
-                  <button
-                    key={r}
-                    onClick={() => setTimeRange(r)}
-                    className={`px-5 py-2 rounded-xl text-xs font-black transition-all ${timeRange === r ? 'bg-white text-gray-900 shadow-md ring-1 ring-gray-100' : 'text-gray-400 hover:text-gray-600'}`}
-                  >
-                    {r === '24h' ? '24시간' : r === '7d' ? '7일' : r === '30d' ? '30일' : '90일'}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2 text-xs font-black text-[#6c9a4c] bg-[#6dec13]/10 rounded-xl px-3 py-2">
+                <Calendar className="w-4 h-4" />
+                최근 7일
               </div>
             </div>
 
-            <div className="flex-1 min-h-[480px] w-full relative z-10">
+            <div className="h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
+                <AreaChart data={trendData}>
                   <defs>
-                    <linearGradient id="colorRankAd" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6dec13" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#6dec13" stopOpacity={0}/>
+                    <linearGradient id="leadingSpend" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6dec13" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#6dec13" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f5" />
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 700, fill: '#6c9a4c' }} dy={10} />
-                  <YAxis reversed axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 700, fill: '#6c9a4c' }} label={{ value: '순위', angle: -90, position: 'insideLeft', style: { fontWeight: 'black', fill: '#6c9a4c', fontSize: 12 } }} />
-                  <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#6dec13', strokeWidth: 2, strokeDasharray: '5 5' }} />
-                  
-                  {currentAds.map((ad) => (
-                    chartData.some(d => d.day === ad.uploadDate) && (
-                      <ReferenceLine 
-                        key={ad.id}
-                        x={ad.uploadDate} 
-                        stroke={hoveredAdId === ad.id ? '#ef4444' : '#ff9999'} 
-                        strokeWidth={hoveredAdId === ad.id ? 4 : 2} 
-                        strokeDasharray={hoveredAdId === ad.id ? '0' : '5 5'}
-                      >
-                        <Label 
-                          content={({ viewBox }) => {
-                            const { x, y } = viewBox as any;
-                            const isHovered = hoveredAdId === ad.id;
-                            return (
-                              <g className="transition-all duration-300">
-                                <rect 
-                                  x={x - 45} y={y - 45} width={90} height={30} rx={10} 
-                                  fill={isHovered ? '#ef4444' : '#ffeded'} 
-                                  stroke={isHovered ? '#ef4444' : '#ff9999'} 
-                                  strokeWidth={1}
-                                />
-                                <text 
-                                  x={x} y={y - 25} textAnchor="middle" 
-                                  fill={isHovered ? '#fff' : '#ef4444'} 
-                                  className="text-[10px] font-black"
-                                >
-                                  AD [{ad.index}] - {ad.channel.split(' ')[0]}
-                                </text>
-                                <circle cx={x} cy={y} r={6} fill={isHovered ? '#ef4444' : '#ff9999'} />
-                              </g>
-                            );
-                          }}
-                        />
-                      </ReferenceLine>
-                    )
-                  ))}
-
-                  <Area type="monotone" dataKey="rank" stroke="#6dec13" strokeWidth={6} fill="url(#colorRankAd)" dot={{ r: 8, fill: '#6dec13', strokeWidth: 4, stroke: '#fff' }} activeDot={{ r: 10, strokeWidth: 0 }} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f6ef" />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 800, fill: '#6c9a4c' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 800, fill: '#6c9a4c' }} />
+                  <Tooltip contentStyle={{ borderRadius: 16, border: '1px solid #ecf3e7', fontWeight: 800 }} />
+                  <Area type="monotone" dataKey="spend" name="광고비(만원)" stroke="#6dec13" strokeWidth={4} fill="url(#leadingSpend)" />
+                  <Area type="monotone" dataKey="clicks" name="클릭(천건)" stroke="#111827" strokeWidth={3} fill="transparent" strokeDasharray="7 6" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
+          </div>
 
-            {/* Bottom Analysis Panel */}
-            <div className="mt-10 p-8 bg-gray-900 rounded-[2.5rem] flex flex-col md:flex-row items-start md:items-center gap-8 shadow-2xl relative z-10 overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#6dec13]/10 rounded-full blur-2xl"></div>
-              <div className="w-16 h-16 bg-[#6dec13] rounded-2xl flex items-center justify-center text-gray-900 shadow-lg shrink-0">
-                <TrendingUp className="w-10 h-10" />
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="bg-white rounded-[2.5rem] border border-[#ecf3e7] p-8 shadow-sm">
+              <h3 className="text-xl font-black text-gray-900 mb-6">채널별 집행 금액</h3>
+              <div className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={platformData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f6ef" />
+                    <XAxis dataKey="platform" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 800, fill: '#6c9a4c' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 800, fill: '#6c9a4c' }} />
+                    <Tooltip contentStyle={{ borderRadius: 16, border: '1px solid #ecf3e7', fontWeight: 800 }} />
+                    <Bar dataKey="spend" name="집행 금액(만원)" fill="#6dec13" radius={[12, 12, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="text-lg font-black text-white">마케팅 캠페인 통합 성과</h4>
-                  <span className="bg-[#6dec13]/20 text-[10px] font-black text-[#6dec13] px-2 py-0.5 rounded-full border border-[#6dec13]/30">AI 분석 리포트</span>
+            </div>
+
+            <div className="bg-gray-900 rounded-[2.5rem] p-8 shadow-2xl text-white">
+              <h3 className="text-xl font-black mb-5">후행지표 연결 힌트</h3>
+              <div className="space-y-4">
+                <div className="bg-white/8 border border-white/10 rounded-2xl p-5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">강한 선행 신호</p>
+                  <p className="mt-2 text-lg font-black text-[#6dec13]">YouTube 클릭률 4.3%</p>
+                  <p className="mt-2 text-xs font-bold text-gray-400 leading-relaxed">
+                    올리브영 구매 반응이 2-3일 뒤 따라오는지 후행지표 분석관에서 확인하세요.
+                  </p>
                 </div>
-                <p className="text-xs font-bold text-gray-400 leading-relaxed max-w-2xl">
-                  {currentAds.length > 0 ? (
-                    `최근 ${timeRange.replace('d', '일')} 동안의 분석 결과, 총 ${currentAds.length}건의 광고 집행이 상품 순위 상승에 긍정적인 영향을 미쳤습니다. 
-                    특히 업로드 ${currentAds[0].uploadDate} 시점의 광고 [1] 이후 순위가 ${chartData[0].rank}위에서 ${chartData[chartData.length - 1].rank}위로 대폭 개선되었습니다.`
-                  ) : (
-                    "분석된 광고 데이터가 없습니다. 좌측 패널을 통해 마케팅 영상을 추가하면 AI가 순위 변동과의 상관관계를 분석합니다."
-                  )}
-                </p>
-              </div>
-              <div className="flex gap-4 w-full md:w-auto">
-                <div className="flex-1 md:flex-none p-4 bg-white/5 rounded-2xl border border-white/10 text-center min-w-[100px]">
-                  <p className="text-[9px] font-bold text-gray-500 uppercase mb-1">최고 순위</p>
-                  <p className="text-xl font-black text-[#6dec13]">1위</p>
-                </div>
-                <div className="flex-1 md:flex-none p-4 bg-white/5 rounded-2xl border border-white/10 text-center min-w-[100px]">
-                  <p className="text-[9px] font-bold text-gray-500 uppercase mb-1">효율성 점수</p>
-                  <p className="text-xl font-black text-blue-400">92%</p>
+                <div className="bg-white/8 border border-white/10 rounded-2xl p-5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">위험 신호</p>
+                  <p className="mt-2 text-lg font-black text-orange-300">Meta Ads 클릭 비용 상승</p>
+                  <p className="mt-2 text-xs font-bold text-gray-400 leading-relaxed">
+                    네이버 커머스 반응이 같이 오르지 않으면 랜딩 또는 소재를 점검해야 합니다.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      <section className="bg-white rounded-[2.5rem] border border-[#ecf3e7] shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-[#ecf3e7]">
+          <h3 className="text-2xl font-black text-gray-900">캠페인 목록</h3>
+          <p className="mt-1 text-sm font-bold text-gray-400">집행 내역을 상품과 판매 채널에 연결할 수 있게 정리합니다.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 p-6">
+          {filteredCampaigns.map((campaign) => (
+            <div key={campaign.id} className="border border-[#ecf3e7] rounded-2xl overflow-hidden bg-[#f7f8f6]">
+              <div className="p-5 bg-white border-b border-[#ecf3e7]">
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-900 text-[#6dec13] rounded-lg text-[10px] font-black">
+                    {platformIcons[campaign.platform]}
+                    {campaign.platform}
+                  </span>
+                  <span className="text-[10px] font-black text-gray-400">{campaign.startDate}</span>
+                </div>
+                <h4 className="font-black text-gray-900 line-clamp-2 min-h-[44px]">{campaign.name}</h4>
+                <p className="mt-2 text-xs font-bold text-gray-400">{campaign.creative}</p>
+              </div>
+              <div className="p-5 space-y-3">
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <p className="font-black text-gray-400">광고비</p>
+                    <p className="font-black text-gray-900">{formatCurrency(campaign.spend)}</p>
+                  </div>
+                  <div>
+                    <p className="font-black text-gray-400">클릭</p>
+                    <p className="font-black text-gray-900">{formatNumber(campaign.clicks)}</p>
+                  </div>
+                  <div>
+                    <p className="font-black text-gray-400">CTR</p>
+                    <p className="font-black text-gray-900">{((campaign.clicks / campaign.impressions) * 100).toFixed(1)}%</p>
+                  </div>
+                  <div>
+                    <p className="font-black text-gray-400">목표 채널</p>
+                    <p className="font-black text-gray-900">{campaign.targetChannel}</p>
+                  </div>
+                </div>
+                <a href={campaign.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-black text-blue-600 hover:underline">
+                  소재 보기 <ArrowUpRight className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+          ))}
+
+          {filteredCampaigns.length === 0 && (
+            <div className="md:col-span-2 xl:col-span-4 py-16 text-center text-gray-400 font-black">
+              선택한 조건에 맞는 선행 광고 데이터가 없습니다.
+            </div>
+          )}
+        </div>
+      </section>
+
+      <OliveYoungCommercePanel campaignId="campaign-youtube-01" productId={`product-${selectedProductRank}`} />
+
+      <details className="group bg-white rounded-[2rem] border border-[#ecf3e7] shadow-sm overflow-hidden">
+        <summary className="cursor-pointer list-none p-6 flex items-center justify-between gap-4">
+          <div>
+            <h3 className="text-xl font-black text-gray-900">선행지표 기획 상세</h3>
+            <p className="mt-1 text-sm font-bold text-gray-400">광고 집행 이후 확인할 기능 화면</p>
+          </div>
+          <span className="px-3 py-2 rounded-xl bg-[#f7f8f6] text-xs font-black text-[#6c9a4c] group-open:bg-[#6dec13] group-open:text-gray-900">
+            펼치기
+          </span>
+        </summary>
+
+        <div className="px-6 pb-6 space-y-6">
+          <section className="bg-[#f7f8f6] rounded-[2rem] border border-[#ecf3e7] p-6">
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-5 mb-7">
+              <div>
+                <h3 className="text-2xl font-black text-gray-900">미디어 핵심 기능</h3>
+                <p className="mt-1 text-sm font-bold text-gray-400">광고 소재와 채널 반응을 확인하는 기능</p>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">YouTube · Instagram · TikTok · X 확장 가능</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {mediaFeatureCards.map((feature) => (
+                <button
+                  key={feature.id}
+                  onClick={() => onFeatureOpen(feature.id)}
+                  className="group text-left rounded-2xl border border-[#ecf3e7] bg-white p-5 hover:bg-[#6dec13]/10 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <h4 className="font-black text-gray-900">{feature.title}</h4>
+                    <span className="px-2 py-1 rounded-lg bg-[#f7f8f6] text-[9px] font-black text-[#6c9a4c] border border-[#ecf3e7]">{feature.sourceRows}</span>
+                  </div>
+                  <p className="text-xs font-bold text-gray-500 leading-relaxed">{feature.description}</p>
+                  <div className="mt-4 inline-flex items-center gap-1 text-[11px] font-black text-[#6c9a4c]">
+                    페이지 보기 <ArrowUpRight className="w-3.5 h-3.5" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+      </details>
     </div>
   );
 };
