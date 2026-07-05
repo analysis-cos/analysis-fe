@@ -64,7 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentView }) => {
       
       <div>
               <div>
-        <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#6c9a4c] mb-4">네비게이션</h3>
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#6c9a4c] mb-4">내비게이션</h3>
         <div className="space-y-1">
           <button 
             onClick={() => onNavigate?.('dashboard')}
@@ -86,7 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentView }) => {
             }`}
           >
             <Youtube className="w-4 h-4" />
-            <span>선행지표 분석관</span>
+            <span>선행지표 분석</span>
           </button>
           <button 
             onClick={() => onNavigate?.('my-brand')}
@@ -97,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentView }) => {
             }`}
           >
             <Store className="w-4 h-4" />
-            <span>후행지표 분석관</span>
+            <span>후행지표 분석</span>
           </button>
         </div>
       </div>

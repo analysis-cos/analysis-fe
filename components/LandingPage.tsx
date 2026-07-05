@@ -21,8 +21,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
         </h1>
         
         <p className="text-lg text-gray-500 max-w-2xl mb-12 font-medium leading-relaxed">
-          OliveRank는 올리브영의 실시간 데이터를 분석하여 가장 빠르고 정확한 
-          시장 인사이트를 제공합니다. 급상승하는 트렌드를 한 눈에 파악하세요.
+          BrandDash는 브랜드 캠페인, 상품별 반응, 판매 채널 신호를 연결해 
+          광고 이후의 변화를 한 화면에서 확인할 수 있게 합니다.
         </p>
         
         <button 
@@ -94,17 +94,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
               <ShieldCheck className="w-8 h-8" />
             </div>
             <h3 className="text-xl font-black text-gray-900 mb-3">AI 인사이트</h3>
-            <p className="text-gray-500 font-medium">복잡한 데이터 사이의 숨겨진 의미를 AI 분석가 라이카가 명확하게 요약해드립니다.</p>
+            <p className="text-gray-500 font-medium">복잡한 데이터 사이의 의미를 AI 분석가가 명확하게 요약해드립니다.</p>
           </div>
         </div>
       </section>
 
       <footer className="w-full py-12 px-6 flex flex-col items-center border-t border-[#ecf3e7] bg-[#f7f8f6]">
         <div className="flex items-center gap-2 mb-4 opacity-50">
-          <div className="w-6 h-6 bg-[#6dec13] rounded flex items-center justify-center text-white text-[10px] font-bold">O</div>
-          <span className="text-sm font-bold text-gray-900">OliveRank Analytics</span>
+          <div className="w-6 h-6 bg-[#6dec13] rounded flex items-center justify-center text-white text-[10px] font-bold">B</div>
+          <span className="text-sm font-bold text-gray-900">BrandDash Analytics</span>
         </div>
-        <p className="text-xs text-gray-400 font-medium">© 2024 OliveRank. All rights reserved.</p>
+        <p className="text-xs text-gray-400 font-medium">© 2024 BrandDash. All rights reserved.</p>
       </footer>
     </div>
   );

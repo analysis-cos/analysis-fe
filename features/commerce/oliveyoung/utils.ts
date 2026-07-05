@@ -41,7 +41,7 @@ export const SOURCE_TYPE_LABELS: Record<SourceType, string> = {
   partner_data: '파트너',
   manual_upload: '수동 업로드',
   computed: '계산',
-  fixture: '샘플',
+  fixture: '분석 데이터',
   unsupported: '제공 불가',
 };
 

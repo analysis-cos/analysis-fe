@@ -121,7 +121,7 @@ export const MOCK_PRODUCTS: Product[] = [
     url: "https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000204014&dispCatNo=90000010009&trackingCd=Best_Sellingbest&t_page=랭킹&t_click=판매랭킹_전체_상품상세&t_number=7"
   }
   ,
-  // 추가된 메디힐 샘플 데이터
+  // 메디힐 상품 데이터
   {
     rank: 11,
     name: "메디힐 N.M.F 아쿠아링 앰플 마스크팩 10매",

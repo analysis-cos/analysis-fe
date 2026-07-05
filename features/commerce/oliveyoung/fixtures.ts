@@ -54,7 +54,7 @@ function snapshot(seed: Partial<OliveYoungProductSnapshot> & Pick<OliveYoungProd
     categoryName: '선케어',
     collectedAt,
     dataQualityScore: 78,
-    dataQualityReasons: ['공개 화면 스냅샷 기반 샘플 데이터입니다.', '동일 상품 옵션과 기획세트 표기 변화가 있을 수 있습니다.'],
+    dataQualityReasons: ['공개 화면 스냅샷 기반 데이터입니다.', '동일 상품 옵션과 기획세트 표기 변화가 있을 수 있습니다.'],
     ...seed,
   };
 }
@@ -171,7 +171,7 @@ function buildSummary(kind: 'strong' | 'promotion' | 'risk' | 'partial'): OliveY
       effectSignal: 'WEAK',
       confidence: 'MEDIUM',
       reasons: ['랭킹 변화는 제한적입니다.', '리뷰 수 증가는 관찰되었습니다.', '부정적인 리뷰 반응이 함께 증가했습니다.'],
-      warnings: ['신규 리뷰 수 증가와 함께 부정적인 리뷰 반응 증가가 관찰되었습니다.', '눈시림, 향, 밀림 관련 사용감 리스크 확인이 필요합니다.'],
+      warnings: ['새 리뷰 수 증가와 함께 부정적인 리뷰 반응 증가가 관찰되었습니다.', '눈시림, 향, 밀림 관련 사용감 리스크 확인이 필요합니다.'],
     };
   }
 
@@ -275,7 +275,7 @@ function buildReviewVoc(kind: 'strong' | 'promotion' | 'risk' | 'partial'): Oliv
       { label: '향', count: 28, ratio: 0.05 },
       { label: '가격', count: 18, ratio: 0.03 },
     ],
-    dataQualityReasons: ['리뷰 반응은 공개 리뷰 표현 기반 요약 샘플입니다.', '작성자 정보와 리뷰 미디어는 노출하지 않습니다.'],
+    dataQualityReasons: ['리뷰 반응은 공개 리뷰 표현 기반 요약입니다.', '작성자 정보와 리뷰 미디어는 노출하지 않습니다.'],
   };
 }
 

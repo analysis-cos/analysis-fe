@@ -35,23 +35,23 @@ const kpiCards = [
     tone: 'text-[#2a4519] bg-[#6dec13]/15',
   },
   {
-    label: '총 광고비',
+    label: '집행 광고비',
     value: '₩18.4M',
-    delta: '+22% vs 전주',
+    delta: '전주 대비 +22%',
     icon: WalletCards,
     tone: 'text-blue-600 bg-blue-50',
   },
   {
-    label: '구매 반응',
+    label: '구매 건수',
     value: '2,846',
-    delta: '+18% vs 전주',
+    delta: '전주 대비 +18%',
     icon: ShoppingBag,
     tone: 'text-purple-600 bg-purple-50',
   },
   {
     label: '평균 ROAS',
     value: '387%',
-    delta: '+41p vs 전주',
+    delta: '전주 대비 +41p',
     icon: TrendingUp,
     tone: 'text-orange-600 bg-orange-50',
   },
@@ -98,37 +98,37 @@ const campaignSummaries = [
     spend: '₩3.6M',
     purchase: '518건',
     roas: '298%',
-    summary: '클릭 흐름은 유지되지만 판매 반응이 둔화되는 상품은 상세 페이지와 혜택 조건을 확인합니다.',
+    summary: '클릭 흐름은 유지되지만 후행 신호가 둔화되는 상품은 상세 페이지와 혜택 조건을 확인합니다.',
     nextAction: '상세 점검',
   },
   {
-    campaign: '채널별 구매 반응 점검',
+    campaign: '판매 채널 반응 점검',
     period: '01.13 - 01.14',
     spend: '₩2.8M',
     purchase: '432건',
     roas: '314%',
-    summary: '올리브영, 쿠팡, 네이버에서 구매 반응이 강한 상품군과 약한 상품군을 나눠 봅니다.',
+    summary: '판매 채널별로 구매 흐름이 강한 상품군과 약한 상품군을 나눠 봅니다.',
     nextAction: '채널 조정',
   },
 ];
 
 const brandWorkflowRows = [
   {
-    title: '광고 반응이 강한 상품',
+    title: '선행 신호가 강한 상품',
     leading: '리뷰 콘텐츠 클릭률과 완주율 확인',
-    commerce: '판매 채널별 구매 반응과 랭킹 변화 비교',
+    commerce: '판매 채널별 구매 건수와 랭킹 변화 비교',
     check: '할인·쿠폰·증정 동시 진행 여부 확인',
     action: '예산 검토',
   },
   {
-    title: '광고 반응은 좋은데 판매 반응이 약한 상품',
+    title: '선행 신호는 좋지만 후행 신호가 약한 상품',
     leading: '소재 저장률과 클릭 흐름 확인',
     commerce: '상품 상세 유입과 가격 조건 점검',
     check: '상품 상세, 리뷰 수, 혜택 조건 확인',
     action: '상세 점검',
   },
   {
-    title: '판매 반응은 있으나 광고 반응이 약한 상품',
+    title: '후행 신호는 있으나 선행 신호가 약한 상품',
     leading: '소재 형식과 플랫폼별 반응 비교',
     commerce: '구매 반응이 유지되는 채널 확인',
     check: '강한 채널 기준으로 소재 재구성',
@@ -148,8 +148,8 @@ const analysisFocusRows = [
     status: '구매 추이와 연결',
   },
   {
-    label: '판매채널 반응',
-    metric: '구매·랭킹 추이',
+    label: '판매 채널 반응',
+    metric: '구매 건수·랭킹 추이',
     status: '채널별 효율 확인',
   },
   {
@@ -162,7 +162,7 @@ const analysisFocusRows = [
 const insightProducts = MOCK_PRODUCTS.slice(0, 6).map((product, index) => ({
   product,
   leading: ['리뷰 콘텐츠 반응', '숏폼 소재 반응', '리타겟팅 클릭', '콘텐츠 저장 반응', '소재 클릭 유지', '영상 완주율 개선'][index],
-  lagging: ['올리브영 랭킹 변화', '쿠팡 구매 반응', '네이버 상품 상세 유입', '올리브영 구매 반응', '채널별 구매 반응', '리뷰 수 변화'][index],
+  lagging: ['올리브영 랭킹 변화', '쿠팡 구매 건수', '네이버 상품 상세 유입', '올리브영 구매 건수', '채널별 구매 흐름', '리뷰 수 변화'][index],
   action: ['예산 검토', '소재 확장', '상세 점검', '리뷰 확보', '채널 조정', '혜택 점검'][index],
 }));
 
@@ -178,10 +178,10 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick }) =
               요약 대시보드
             </div>
             <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-4">
-              담당 브랜드 전체의 광고와 판매 반응을 요약합니다.
+              담당 브랜드 전체의 선행 신호와 후행 신호를 요약합니다.
             </h2>
             <p className="max-w-3xl text-sm md:text-base font-bold text-gray-300 leading-relaxed">
-              상품별 광고 집행, 소재 반응, 판매 채널 반응, 랭킹 변화를 합산해서 브랜드 단위로 확인합니다.
+              상품별 광고 집행, 소재 반응, 판매 채널 흐름, 랭킹 변화를 합산해서 브랜드 단위로 확인합니다.
             </p>
           </div>
         </div>
@@ -211,8 +211,8 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick }) =
         <div className="xl:col-span-8 bg-white rounded-[2.5rem] border border-[#ecf3e7] p-8 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
-              <h3 className="text-2xl font-black text-gray-900">광고비와 구매 반응 흐름</h3>
-              <p className="text-sm font-bold text-gray-400 mt-1">선행 집행 시점과 후행 구매 반응의 흐름을 함께 확인합니다.</p>
+              <h3 className="text-2xl font-black text-gray-900">광고비와 구매 흐름</h3>
+              <p className="text-sm font-bold text-gray-400 mt-1">선행 집행 시점과 후행 구매 흐름을 함께 확인합니다.</p>
             </div>
             <div className="flex items-center gap-2 text-xs font-black text-[#6c9a4c] bg-[#6dec13]/10 rounded-xl px-3 py-2">
               <Radio className="w-4 h-4" />
@@ -233,7 +233,7 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick }) =
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 800, fill: '#6c9a4c' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 800, fill: '#6c9a4c' }} />
                 <Tooltip contentStyle={{ borderRadius: 16, border: '1px solid #ecf3e7', fontWeight: 800 }} />
-                <Area type="monotone" dataKey="revenue" name="구매 반응" stroke="#6dec13" strokeWidth={4} fill="url(#summaryRevenue)" />
+                <Area type="monotone" dataKey="revenue" name="거래액" stroke="#6dec13" strokeWidth={4} fill="url(#summaryRevenue)" />
                 <Area type="monotone" dataKey="spend" name="광고비" stroke="#111827" strokeWidth={3} fill="transparent" strokeDasharray="7 6" />
               </AreaChart>
             </ResponsiveContainer>
@@ -247,7 +247,7 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick }) =
             </div>
             <div>
               <h3 className="text-xl font-black text-gray-900">판매 채널 반응</h3>
-              <p className="text-xs font-bold text-gray-400">채널별 구매 금액 기준</p>
+              <p className="text-xs font-bold text-gray-400">채널별 거래액 기준</p>
             </div>
           </div>
           <div className="h-[285px]">
@@ -272,7 +272,7 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick }) =
               광고 집행 단위로 선행 플랫폼과 판매 채널 반응을 함께 확인합니다.
             </p>
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">좌우 스크롤</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">가로로 넘겨 보기</span>
         </div>
 
         <div className="p-6 lg:p-8 overflow-x-auto">
@@ -297,7 +297,7 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick }) =
                     <p className="mt-1 font-black text-gray-900">{item.spend}</p>
                   </div>
                   <div className="rounded-2xl bg-white border border-[#ecf3e7] p-3">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">구매 반응</p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">구매 건수</p>
                     <p className="mt-1 font-black text-gray-900">{item.purchase}</p>
                   </div>
                   <div className="rounded-2xl bg-white border border-[#ecf3e7] p-3">
@@ -314,12 +314,12 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick }) =
         <div className="p-6 lg:p-8 border-b border-[#ecf3e7] flex flex-col xl:flex-row xl:items-end justify-between gap-5">
           <div>
             <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">상품별 연결 현황</p>
-            <h3 className="mt-2 text-2xl font-black text-gray-900">광고 집행과 판매 반응을 상품별로 묶어 봅니다</h3>
+            <h3 className="mt-2 text-2xl font-black text-gray-900">선행 신호와 후행 신호를 상품별로 묶어 봅니다</h3>
             <p className="mt-2 text-sm font-bold text-gray-500 max-w-3xl">
               브랜드 전체를 보되, 원인 확인은 상품 단위로 내려가서 볼 수 있게 정리합니다.
             </p>
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">상품별 합산</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">상품 단위 요약</span>
         </div>
 
         <div className="p-6 lg:p-8 grid grid-cols-1 xl:grid-cols-12 gap-6">
@@ -362,8 +362,8 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick }) =
                     <ShoppingBag className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-lg font-black text-gray-900">판매 반응 확인</h4>
-                    <p className="text-xs font-bold text-gray-400">구매 반응, 랭킹, 가격 변수</p>
+                    <h4 className="text-lg font-black text-gray-900">판매 채널 확인</h4>
+                    <p className="text-xs font-bold text-gray-400">구매 건수, 랭킹, 가격 변수</p>
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -386,8 +386,8 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick }) =
           <div className="xl:col-span-5 rounded-[2rem] bg-gray-900 p-6 text-white">
             <div className="flex items-center justify-between gap-3 mb-5">
               <div>
-                <h4 className="text-lg font-black">상품군별 점검 항목</h4>
-                <p className="mt-1 text-xs font-bold text-gray-400">브랜드 전체에서 먼저 확인할 상품군입니다.</p>
+                <h4 className="text-lg font-black">우선 확인 상품군</h4>
+                <p className="mt-1 text-xs font-bold text-gray-400">브랜드 전체에서 우선 확인할 상품군입니다.</p>
               </div>
               <span className="text-[10px] font-black uppercase tracking-widest text-[#6dec13]">3건</span>
             </div>
@@ -413,8 +413,8 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick }) =
       <section className="bg-white rounded-[2.5rem] border border-[#ecf3e7] shadow-sm overflow-hidden">
         <div className="p-8 border-b border-[#ecf3e7] flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h3 className="text-2xl font-black text-gray-900">상품별 광고·판매 연결 현황</h3>
-            <p className="text-sm font-bold text-gray-400 mt-1">각 상품의 광고 반응, 판매 반응, 다음 작업을 브랜드 전체 관점에서 봅니다.</p>
+            <h3 className="text-2xl font-black text-gray-900">상품별 선행·후행 연결 현황</h3>
+            <p className="text-sm font-bold text-gray-400 mt-1">각 상품의 선행/후행 신호와 다음 작업을 브랜드 전체 관점에서 봅니다.</p>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -422,8 +422,8 @@ const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ onProductClick }) =
             <thead>
               <tr className="bg-[#f7f8f6]">
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">상품</th>
-                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">광고 반응</th>
-                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">판매 반응</th>
+                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">선행 신호</th>
+                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">후행 신호</th>
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c] text-right">권장 액션</th>
               </tr>
             </thead>

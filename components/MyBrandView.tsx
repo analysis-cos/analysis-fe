@@ -40,7 +40,9 @@ interface MyBrandViewProps {
   onProductClick: (product: Product) => void;
 }
 
-type SalesChannel = '전체' | '올리브영' | '쿠팡' | '네이버';
+type CommerceChannel = '올리브영' | '쿠팡' | '네이버';
+type SalesChannel = '전체' | CommerceChannel;
+type CommerceAnalysisView = 'dashboard' | CommerceChannel;
 type AdPlatform = 'YouTube' | 'Instagram' | 'Meta Ads' | 'TikTok' | 'X';
 
 interface AdTimingEvent {
@@ -52,6 +54,13 @@ interface AdTimingEvent {
 }
 
 const adPlatforms: AdPlatform[] = ['YouTube', 'Instagram', 'Meta Ads', 'TikTok', 'X'];
+const commerceChannels: CommerceChannel[] = ['올리브영', '쿠팡', '네이버'];
+
+const channelMeta: Record<CommerceChannel, { color: string; label: string; icon: React.ReactNode }> = {
+  올리브영: { color: '#6dec13', label: '랭킹·리뷰 반응 중심', icon: <Store className="w-4 h-4" /> },
+  쿠팡: { color: '#111827', label: '가격·배송 반응 중심', icon: <ShoppingBag className="w-4 h-4" /> },
+  네이버: { color: '#60a5fa', label: '검색·상세 유입 중심', icon: <Search className="w-4 h-4" /> },
+};
 
 const adPlatformMeta: Record<AdPlatform, { color: string; bg: string; icon: React.ReactNode }> = {
   YouTube: { color: '#ef4444', bg: 'bg-red-50 text-red-600', icon: <Youtube className="w-3.5 h-3.5" /> },
@@ -68,6 +77,13 @@ const channelPerformance = [
 ];
 
 const conversionTrend = [
+  { day: '01.01', oliveyoung: 142, coupang: 88, naver: 72 },
+  { day: '01.02', oliveyoung: 156, coupang: 94, naver: 78 },
+  { day: '01.03', oliveyoung: 164, coupang: 102, naver: 84 },
+  { day: '01.04', oliveyoung: 188, coupang: 116, naver: 90 },
+  { day: '01.05', oliveyoung: 196, coupang: 118, naver: 92 },
+  { day: '01.06', oliveyoung: 204, coupang: 121, naver: 94 },
+  { day: '01.07', oliveyoung: 216, coupang: 128, naver: 98 },
   { day: '01.08', oliveyoung: 210, coupang: 124, naver: 96 },
   { day: '01.09', oliveyoung: 260, coupang: 142, naver: 112 },
   { day: '01.10', oliveyoung: 318, coupang: 198, naver: 146 },
@@ -78,6 +94,20 @@ const conversionTrend = [
 ];
 
 const initialAdTimingEvents: AdTimingEvent[] = [
+  {
+    id: 'ad-event-youtube-00',
+    day: '01.04',
+    platform: 'YouTube',
+    name: '메디힐 루틴 티저 영상',
+    url: 'https://www.youtube.com/watch?v=sample0',
+  },
+  {
+    id: 'ad-event-instagram-00',
+    day: '01.06',
+    platform: 'Instagram',
+    name: '선크림 출근 루틴 스토리',
+    url: 'https://www.instagram.com/stories/sample',
+  },
   {
     id: 'ad-event-youtube-01',
     day: '01.08',
@@ -99,10 +129,24 @@ const initialAdTimingEvents: AdTimingEvent[] = [
     name: '메디큐브 리타겟팅',
     url: 'https://ads.example.com/meta',
   },
+  {
+    id: 'ad-event-tiktok-01',
+    day: '01.13',
+    platform: 'TikTok',
+    name: '사용감 숏폼 확산 캠페인',
+    url: 'https://www.tiktok.com/@sample/video/2',
+  },
+  {
+    id: 'ad-event-x-01',
+    day: '01.14',
+    platform: 'X',
+    name: '행사 종료 전 리마인드 포스트',
+    url: 'https://x.com/sample/status/1',
+  },
 ];
 
-const productResults = MOCK_PRODUCTS.slice(0, 10).flatMap((product, productIndex) => {
-  const channels: Array<Exclude<SalesChannel, '전체'>> = ['올리브영', '쿠팡', '네이버'];
+const productResults = MOCK_PRODUCTS.flatMap((product, productIndex) => {
+  const channels = commerceChannels;
 
   return channels.map((channel, channelIndex) => {
     const visits = [12840, 9340, 7820][channelIndex] + productIndex * 420;
@@ -166,9 +210,9 @@ function buildLeadingProductRows(product: Product) {
       benefit: '쿠폰·증정 보통',
     },
     {
-      product: '선택 상품',
+      product: '이 상품',
       price: formatCurrency(product.price),
-      discount: product.change > 0 ? '18%' : '데이터 없음',
+      discount: product.change > 0 ? '18%' : '확인 필요',
       review: '6,210개',
       rating: '4.6',
       benefit: '오늘드림·증정 확인',
@@ -186,14 +230,14 @@ function buildLeadingProductRows(product: Product) {
 
 function buildRisingProductRows(product: Product) {
   return [
-    { product: product.name, channel: '올리브영', signal: `${product.rank}위`, reason: '광고 시점 이후 랭킹 변화 확인', action: 'D+3 재확인' },
+    { product: product.name, channel: '올리브영', signal: `${product.rank}위`, reason: '광고 시점 이후 랭킹 변화 확인', action: 'D+3 다시 확인' },
     { product: product.name, channel: '쿠팡', signal: '구매 반응 +18%', reason: '가격 혜택 강화 가능성', action: '혜택 영향 분리' },
     { product: product.name, channel: '네이버', signal: '검색 랭킹 +6', reason: '리뷰 수와 평점 동반 유지', action: '소재 확장 후보' },
   ];
 }
 
 const reviewReactionRows = [
-  { label: '신규 리뷰', value: '+312개', detail: '평점 4.7 유지', action: '소재 소구 유지' },
+  { label: '새 리뷰', value: '+312개', detail: '평점 4.7 유지', action: '소재 메시지 유지' },
   { label: '평점 리스크', value: '4.8 → 4.4', detail: '눈시림 언급 증가', action: '상세 문구 점검' },
   { label: '재구매 언급', value: '+14%', detail: '대용량 옵션 문의 증가', action: '세트 구성 검토' },
 ];
@@ -214,8 +258,200 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat('ko-KR').format(value);
 }
 
+const channelTrendKey: Record<CommerceChannel, 'oliveyoung' | 'coupang' | 'naver'> = {
+  올리브영: 'oliveyoung',
+  쿠팡: 'coupang',
+  네이버: 'naver',
+};
+
+function CommerceViewTabs({
+  activeView,
+  onViewChange,
+}: {
+  activeView: CommerceAnalysisView;
+  onViewChange: (view: CommerceAnalysisView) => void;
+}) {
+  return (
+    <section className="rounded-[2rem] border border-[#ecf3e7] bg-white p-4 shadow-sm">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">분석 보기</p>
+          <p className="mt-1 text-sm font-bold text-gray-500">전체 요약 또는 판매 채널별 상세를 선택합니다.</p>
+        </div>
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label="후행지표 분석 보기 선택">
+          <button
+            type="button"
+            onClick={() => onViewChange('dashboard')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all ${
+              activeView === 'dashboard' ? 'bg-gray-900 text-[#6dec13]' : 'bg-[#f7f8f6] text-gray-500 hover:text-gray-900'
+            }`}
+            aria-selected={activeView === 'dashboard'}
+            role="tab"
+          >
+            <BarChart3 className="w-4 h-4" />
+            대시보드
+          </button>
+          {commerceChannels.map((channel) => (
+            <button
+              key={channel}
+              type="button"
+              onClick={() => onViewChange(channel)}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all ${
+                activeView === channel ? 'bg-gray-900 text-[#6dec13]' : 'bg-[#f7f8f6] text-gray-500 hover:text-gray-900'
+              }`}
+              aria-selected={activeView === channel}
+              role="tab"
+            >
+              {channelMeta[channel].icon}
+              {channel}
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ChannelDetailSection({
+  channel,
+  selectedProduct,
+  rows,
+  rankingRows,
+  adTimingEvents,
+}: {
+  channel: CommerceChannel;
+  selectedProduct: Product;
+  rows: typeof productResults;
+  rankingRows: ReturnType<typeof buildCommerceRankingRows>;
+  adTimingEvents: AdTimingEvent[];
+}) {
+  const performance = channelPerformance.find((item) => item.channel === channel) ?? channelPerformance[0];
+  const trendKey = channelTrendKey[channel];
+  const rankingRow = rankingRows.find((row) => row.channel === channel) ?? rankingRows[0];
+  const detailRows = conversionTrend.map((point, index) => {
+    const purchases = point[trendKey];
+    const visits = Math.round(purchases * [27, 32, 35][commerceChannels.indexOf(channel)]);
+    const adEvents = adTimingEvents.filter((event) => event.day === point.day);
+
+    return {
+      day: point.day,
+      visits,
+      purchases,
+      conversionRate: visits ? (purchases / visits) * 100 : 0,
+      rank: Math.max(1, selectedProduct.rank + 8 - index),
+      adEvents,
+    };
+  }).reverse();
+
+  const channelRows = rows
+    .filter((item) => item.channel === channel)
+    .sort((a, b) => b.purchases - a.purchases)
+    .slice(0, 5);
+
+  return (
+    <section className="bg-white rounded-[2.5rem] border border-[#ecf3e7] p-6 lg:p-8 shadow-sm">
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-5 mb-7">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">판매 채널 상세</p>
+          <h3 className="mt-2 flex items-center gap-2 text-2xl font-black text-gray-900">
+            {channelMeta[channel].icon}
+            {channel} 반응을 자세히 확인합니다
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm font-bold text-gray-500">{channelMeta[channel].label}</p>
+        </div>
+        <span className="w-fit rounded-xl bg-[#6dec13]/15 px-4 py-2 text-xs font-black text-[#2a4519]">
+          {rankingRow.action}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="rounded-2xl bg-gray-900 p-5 text-white">
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">구매 반응</p>
+          <p className="mt-2 text-3xl font-black text-[#6dec13]">{formatNumber(performance.purchases)}건</p>
+          <p className="mt-1 text-xs font-bold text-gray-400">최근 14일 합산</p>
+        </div>
+        <div className="rounded-2xl bg-[#f7f8f6] border border-[#ecf3e7] p-5">
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">전환율</p>
+          <p className="mt-2 text-xl font-black text-gray-900">{performance.conversionRate.toFixed(1)}%</p>
+          <p className="mt-1 text-xs font-bold text-gray-500">방문 대비 구매 비율</p>
+        </div>
+        <div className="rounded-2xl bg-[#f7f8f6] border border-[#ecf3e7] p-5">
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">랭킹 변화</p>
+          <p className="mt-2 text-xl font-black text-gray-900">{rankingRow.delta}</p>
+          <p className="mt-1 text-xs font-bold text-gray-500">{rankingRow.rank}</p>
+        </div>
+        <div className="rounded-2xl bg-[#f7f8f6] border border-[#ecf3e7] p-5">
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">주의 요인</p>
+          <p className="mt-2 text-sm font-black text-gray-900">{rankingRow.confounder}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div className="xl:col-span-7 rounded-[2rem] border border-[#ecf3e7] bg-[#f7f8f6] p-5">
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <div>
+              <h4 className="text-lg font-black text-gray-900">{channel} 구매 반응 추이</h4>
+              <p className="mt-1 text-xs font-bold text-gray-500">광고 시점 이후 해당 채널의 흐름을 확인합니다.</p>
+            </div>
+            <TrendingUp className="w-5 h-5 text-[#6c9a4c]" />
+          </div>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={conversionTrend}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5eedf" />
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 800, fill: '#6c9a4c' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 800, fill: '#6c9a4c' }} />
+                <Tooltip contentStyle={{ borderRadius: 16, border: '1px solid #ecf3e7', fontWeight: 800 }} />
+                <Line type="monotone" dataKey={trendKey} name={channel} stroke={channelMeta[channel].color} strokeWidth={4} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="xl:col-span-5 rounded-[2rem] border border-[#ecf3e7] bg-white overflow-hidden">
+          <div className="p-5 border-b border-[#ecf3e7]">
+            <h4 className="text-lg font-black text-gray-900">일별 상세 지표</h4>
+            <p className="mt-1 text-xs font-bold text-gray-500">방문 수, 구매 건수, 랭킹을 날짜별로 확인합니다.</p>
+          </div>
+          <div className="max-h-[360px] overflow-y-auto divide-y divide-[#ecf3e7]">
+            {detailRows.map((row) => (
+              <div key={`${channel}-${row.day}`} className="grid grid-cols-[72px_1fr_auto] gap-3 p-4">
+                <p className="text-sm font-black text-gray-900">{row.day}</p>
+                <div>
+                  <p className="text-xs font-black text-gray-700">방문 수 {formatNumber(row.visits)} / 구매 건수 {formatNumber(row.purchases)}</p>
+                  <p className="mt-1 text-[11px] font-bold text-gray-400">전환율 {row.conversionRate.toFixed(1)}% · 랭킹 {row.rank}위</p>
+                  {row.adEvents.length > 0 && (
+                    <p className="mt-1 text-[10px] font-black text-[#6c9a4c]">광고 시점 {row.adEvents.length}개</p>
+                  )}
+                </div>
+                <span className="text-[10px] font-black text-gray-400">D-{detailRows.length - detailRows.indexOf(row)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="xl:col-span-12 rounded-[2rem] border border-[#ecf3e7] bg-[#f7f8f6] p-5">
+          <h4 className="text-lg font-black text-gray-900 mb-4">{channel} 비교 상품</h4>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            {channelRows.map((item) => (
+              <article
+                key={`${item.product.rank}-${item.channel}-detail`}
+                className="rounded-2xl bg-white border border-[#ecf3e7] p-4"
+              >
+                <p className="text-xs font-black text-gray-900 line-clamp-2 min-h-[34px]">{item.product.name}</p>
+                <p className="mt-2 text-[11px] font-bold text-gray-400">{item.product.brand}</p>
+                <p className="mt-3 text-sm font-black text-[#2a4519]">{formatNumber(item.purchases)}건</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProductClick }) => {
-  const [activeChannel, setActiveChannel] = useState<SalesChannel>('전체');
+  const [activeCommerceView, setActiveCommerceView] = useState<CommerceAnalysisView>('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [adTimingEvents, setAdTimingEvents] = useState<AdTimingEvent[]>(initialAdTimingEvents);
   const [newAdDay, setNewAdDay] = useState(conversionTrend[conversionTrend.length - 1]?.day ?? '01.14');
@@ -226,6 +462,7 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
   const commerceRankingRows = buildCommerceRankingRows(selectedProduct);
   const leadingProductRows = buildLeadingProductRows(selectedProduct);
   const risingProductRows = buildRisingProductRows(selectedProduct);
+  const activeChannel: SalesChannel = activeCommerceView === 'dashboard' ? '전체' : activeCommerceView;
 
   const filteredResults = useMemo(() => {
     return productResults.filter(({ product, channel }) => {
@@ -301,27 +538,14 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#6dec13]/15 text-[#2a4519] rounded-full text-[11px] font-black uppercase tracking-widest mb-4">
             <ShoppingBag className="w-3.5 h-3.5" />
-            후행지표 분석관
+            후행지표 분석
           </div>
           <h2 className="text-4xl font-black text-gray-900 tracking-tight">광고 이후 판매 채널 반응을 확인합니다.</h2>
           <p className="mt-3 text-sm font-bold text-gray-500 max-w-3xl">
-            네이버, 쿠팡, 올리브영의 방문, 구매, 매출, 전환율을 상품 단위로 비교하고 광고 시점과 함께 해석합니다.
+            올리브영, 쿠팡, 네이버의 방문 수, 구매 건수, 거래액, 전환율을 상품 단위로 비교하고 광고 시점과 함께 해석합니다.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-white border border-[#ecf3e7] rounded-2xl p-2 shadow-sm">
-          {(['전체', '올리브영', '쿠팡', '네이버'] as SalesChannel[]).map((channel) => (
-            <button
-              key={channel}
-              onClick={() => setActiveChannel(channel)}
-              className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all ${
-                activeChannel === channel ? 'bg-[#6dec13] text-gray-900 shadow-lg shadow-[#6dec13]/20' : 'text-gray-400 hover:text-gray-700'
-              }`}
-            >
-              {channel}
-            </button>
-          ))}
-        </div>
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-4 gap-5">
@@ -329,40 +553,47 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
           <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
             <MousePointerClick className="w-5 h-5" />
           </div>
-          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">방문수</p>
+          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">방문 수</p>
           <p className="mt-2 text-3xl font-black text-gray-900">{formatNumber(totals.visits)}</p>
         </div>
         <div className="bg-white rounded-2xl border border-[#ecf3e7] p-5 shadow-sm">
           <div className="w-11 h-11 rounded-xl bg-[#6dec13]/15 text-[#2a4519] flex items-center justify-center mb-4">
             <ShoppingBag className="w-5 h-5" />
           </div>
-          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">구매수</p>
+          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">구매 건수</p>
           <p className="mt-2 text-3xl font-black text-gray-900">{formatNumber(totals.purchases)}</p>
         </div>
         <div className="bg-white rounded-2xl border border-[#ecf3e7] p-5 shadow-sm">
           <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-4">
             <CreditCard className="w-5 h-5" />
           </div>
-          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">매출</p>
+          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">거래액</p>
           <p className="mt-2 text-3xl font-black text-gray-900">{formatCurrency(totals.revenue)}</p>
         </div>
         <div className="bg-white rounded-2xl border border-[#ecf3e7] p-5 shadow-sm">
           <div className="w-11 h-11 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center mb-4">
             <TrendingUp className="w-5 h-5" />
           </div>
-          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">전환율 / ROAS</p>
+          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">
+            {activeCommerceView === 'dashboard' ? '전환율 / ROAS' : '전환율'}
+          </p>
           <p className="mt-2 text-3xl font-black text-gray-900">{avgConversion.toFixed(1)}%</p>
-          <p className="mt-1 text-xs font-black text-[#6c9a4c]">ROAS {avgRoas}%</p>
+          {activeCommerceView === 'dashboard' && (
+            <p className="mt-1 text-xs font-black text-[#6c9a4c]">ROAS {avgRoas}%</p>
+          )}
         </div>
       </section>
 
+      <CommerceViewTabs activeView={activeCommerceView} onViewChange={setActiveCommerceView} />
+
+      {activeCommerceView === 'dashboard' ? (
       <section className="bg-white rounded-[2.5rem] border border-[#ecf3e7] shadow-sm overflow-hidden">
         <div className="p-6 lg:p-8 border-b border-[#ecf3e7] flex flex-col xl:flex-row xl:items-end justify-between gap-5">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">판매 채널 분석</p>
-            <h3 className="mt-2 text-2xl font-black text-gray-900">선택 상품의 랭킹, 가격, 리뷰 반응을 확인합니다</h3>
+            <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">판매 채널 요약</p>
+            <h3 className="mt-2 text-2xl font-black text-gray-900">이 상품의 랭킹, 가격, 리뷰 반응을 확인합니다</h3>
             <p className="mt-2 text-sm font-bold text-gray-500 max-w-3xl">
-              판매 채널에서 확인해야 하는 랭킹 변화, 가격 조건, 리뷰 반응, 혜택 변수를 함께 봅니다.
+              판매 채널별 랭킹 변화, 가격 조건, 리뷰 반응, 혜택 변수를 함께 봅니다.
             </p>
           </div>
           <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">올리브영 · 쿠팡 · 네이버</span>
@@ -372,7 +603,7 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
           <div className="xl:col-span-7 rounded-[2rem] bg-[#f7f8f6] border border-[#ecf3e7] overflow-hidden">
             <div className="p-5 border-b border-[#ecf3e7] flex items-center justify-between gap-4">
               <div>
-                <h4 className="text-lg font-black text-gray-900">랭킹·구매 반응 점검</h4>
+                <h4 className="text-lg font-black text-gray-900">랭킹·구매 반응</h4>
                 <p className="mt-1 text-xs font-bold text-gray-500">광고 시점 이후 채널별 반응과 혼선 요인을 같이 봅니다.</p>
               </div>
               <TrendingUp className="w-5 h-5 text-[#6c9a4c] shrink-0" />
@@ -415,7 +646,7 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
             <div className="flex items-center justify-between gap-3 mb-5">
               <div>
                 <h4 className="text-lg font-black">가격·혜택 조건 비교</h4>
-                <p className="mt-1 text-xs font-bold text-gray-400">선택 상품이 상위 상품 대비 어떤 조건인지 확인합니다.</p>
+                <p className="mt-1 text-xs font-bold text-gray-400">이 상품이 상위 상품 대비 어떤 조건인지 확인합니다.</p>
               </div>
               <Package className="w-5 h-5 text-[#6dec13] shrink-0" />
             </div>
@@ -503,7 +734,18 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
           </div>
         </div>
       </section>
+      ) : (
+        <ChannelDetailSection
+          channel={activeCommerceView}
+          selectedProduct={selectedProduct}
+          rows={productResults}
+          rankingRows={commerceRankingRows}
+          adTimingEvents={adTimingEvents}
+        />
+      )}
 
+      {activeCommerceView === 'dashboard' && (
+        <>
       <section className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         <div className="xl:col-span-8 bg-white rounded-[2.5rem] border border-[#ecf3e7] p-8 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -573,7 +815,7 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
                   </div>
                   <p className="mt-3 text-sm font-black text-gray-900 line-clamp-2">{event.name}</p>
                   <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-black text-blue-600">
-                    URL 보기 <ExternalLink className="w-3 h-3" />
+                    링크 열기 <ExternalLink className="w-3 h-3" />
                   </span>
                 </a>
               ))}
@@ -587,8 +829,8 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-gray-900">광고 시점 등록</h3>
-              <p className="text-xs font-bold text-gray-400">선행 플랫폼 광고를 차트에 표시합니다.</p>
+              <h3 className="text-xl font-black text-gray-900">광고 시점 추가</h3>
+              <p className="text-xs font-bold text-gray-400">선행 광고 시점을 차트에 표시합니다.</p>
             </div>
           </div>
 
@@ -655,7 +897,7 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
           </div>
 
           <div className="mt-7 pt-6 border-t border-[#ecf3e7]">
-            <h4 className="text-sm font-black text-gray-900 mb-3">등록된 광고</h4>
+            <h4 className="text-sm font-black text-gray-900 mb-3">등록된 광고 시점</h4>
             <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
               {sortedAdTimingEvents.map((event) => {
                 const eventsOnDay = eventsByDay[event.day]?.length ?? 0;
@@ -690,7 +932,7 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
                       rel="noopener noreferrer"
                       className="mt-3 inline-flex items-center gap-1 text-[11px] font-black text-blue-600 hover:underline"
                     >
-                      URL 열기 <ExternalLink className="w-3 h-3" />
+                      링크 열기 <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
                 );
@@ -706,8 +948,8 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
             <Store className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-xl font-black text-gray-900">채널별 ROAS</h3>
-            <p className="text-xs font-bold text-gray-400">광고비 대비 매출</p>
+            <h3 className="text-xl font-black text-gray-900">채널별 효율</h3>
+            <p className="text-xs font-bold text-gray-400">광고비 대비 거래액 기준</p>
           </div>
         </div>
         <div className="h-[260px]">
@@ -725,8 +967,8 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
       <section className="bg-white rounded-[2.5rem] border border-[#ecf3e7] shadow-sm overflow-hidden">
         <div className="p-8 border-b border-[#ecf3e7] flex flex-col xl:flex-row xl:items-center justify-between gap-5">
           <div>
-            <h3 className="text-2xl font-black text-gray-900">선택 상품의 채널별 결과</h3>
-            <p className="mt-1 text-sm font-bold text-gray-400">선택한 상품의 방문, 구매 반응, 광고 연결 정보를 채널별로 확인합니다.</p>
+            <h3 className="text-2xl font-black text-gray-900">채널별 상세 결과</h3>
+            <p className="mt-1 text-sm font-bold text-gray-400">이 상품의 방문 수, 구매 건수, 광고 연결 정보를 채널별로 확인합니다.</p>
           </div>
           <div className="relative min-w-full xl:min-w-[320px]">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6c9a4c]" />
@@ -747,7 +989,7 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">판매 채널</th>
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">방문 / 구매</th>
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">전환율</th>
-                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">매출</th>
+                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">거래액</th>
                 <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c] text-right">광고 연결</th>
               </tr>
             </thead>
@@ -797,7 +1039,7 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
                   <td colSpan={6} className="px-8 py-20 text-center">
                     <div className="flex flex-col items-center gap-4 text-gray-400 font-black">
                       <Package className="w-10 h-10" />
-                      조건에 맞는 판매 채널 데이터가 없습니다.
+                      표시할 판매 채널 데이터가 없습니다.
                     </div>
                   </td>
                 </tr>
@@ -806,6 +1048,8 @@ const MyBrandView: React.FC<MyBrandViewProps> = ({ selectedProductRank, onProduc
           </table>
         </div>
       </section>
+        </>
+      )}
 
     </div>
   );

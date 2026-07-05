@@ -11,7 +11,7 @@ interface Message {
 const AIChat: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', content: '안녕하세요! OliveRank AI 분석가입니다. 현재 순위 데이터에 대해 궁금한 점이 있으신가요?' }
+    { role: 'ai', content: '안녕하세요! BrandDash AI 분석가입니다. 현재 브랜드와 상품 데이터에 대해 궁금한 점이 있으신가요?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -63,7 +63,7 @@ const AIChat: React.FC = () => {
                 <Bot className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-black">OliveRank Analyst</p>
+                <p className="text-sm font-black">BrandDash Analyst</p>
                 <p className="text-[10px] font-bold opacity-70">AI Powered Insight</p>
               </div>
             </div>

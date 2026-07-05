@@ -11,7 +11,7 @@ const tabs = [
   {
     view: 'dashboard' as const,
     label: '요약',
-    description: '전체 판단',
+    description: '전체 요약',
     icon: LayoutDashboard,
   },
   {
@@ -23,7 +23,7 @@ const tabs = [
   {
     view: 'my-brand' as const,
     label: '후행지표',
-    description: '커머스·구매',
+    description: '판매 채널',
     icon: ShoppingBag,
   },
 ];

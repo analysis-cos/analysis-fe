@@ -7,6 +7,7 @@ import {
   MousePointerClick,
   Plus,
   Radio,
+  ShieldAlert,
   Sparkles,
   ThumbsUp,
   Video,
@@ -25,9 +26,18 @@ import {
   YAxis,
 } from 'recharts';
 import { MOCK_PRODUCTS } from '../constants';
-import OliveYoungCommercePanel from '../features/commerce/oliveyoung/components/OliveYoungCommercePanel';
+import {
+  LEADING_PLATFORMS,
+  buildDemandSummaryText,
+  getDemandSignalBand,
+  getPlatformDemandModel,
+  type DemandSignalBandTone,
+  type LeadingPlatform,
+  type PlatformDemandModel,
+} from '../features/leading/platformDemand';
 
-type Platform = 'YouTube' | 'Instagram' | 'Meta Ads' | 'TikTok';
+type Platform = LeadingPlatform;
+type DemandAnalysisView = 'dashboard' | Platform;
 
 interface Campaign {
   id: string;
@@ -55,36 +65,51 @@ const platformIcons: Record<Platform, React.ReactNode> = {
   TikTok: <Video className="w-4 h-4" />,
 };
 
-const campaignSeedPlatforms: Platform[] = ['YouTube', 'Instagram', 'Meta Ads', 'TikTok'];
+const demandToneClass: Record<DemandSignalBandTone, string> = {
+  strong: 'bg-[#6dec13] text-gray-950',
+  medium: 'bg-blue-50 text-blue-700',
+  consideration: 'bg-amber-50 text-amber-700',
+  low: 'bg-gray-100 text-gray-600',
+};
+
+const demandScoreToneClass: Record<DemandSignalBandTone, string> = {
+  strong: 'text-[#6dec13]',
+  medium: 'text-blue-300',
+  consideration: 'text-amber-300',
+  low: 'text-gray-300',
+};
+
+const campaignSeedPlatforms: Platform[] = LEADING_PLATFORMS;
 const campaignSeedChannels = ['올리브영', '쿠팡', '네이버', '올리브영'];
 const campaignSeedCreatives = ['롱폼 리뷰 영상', '릴스 체험단', '리타겟팅 배너', '15초 사용감 영상'];
 
-const initialCampaigns: Campaign[] = MOCK_PRODUCTS.slice(0, 10).map((product, index) => {
-  const platform = campaignSeedPlatforms[index % campaignSeedPlatforms.length];
-  const spend = [7800000, 4200000, 3600000, 2800000][index % 4];
+const initialCampaigns: Campaign[] = MOCK_PRODUCTS.slice(0, 10).flatMap((product, productIndex) =>
+  campaignSeedPlatforms.map((platform, platformIndex) => {
+    const spend = [7800000, 4200000, 3600000, 2800000][platformIndex] + productIndex * 180000;
 
-  return {
-    id: `c-${product.rank}-${platform.toLowerCase().replace(/\s/g, '-')}`,
-    platform,
-    productRank: product.rank,
-    name: `${product.brand} ${campaignSeedCreatives[index % campaignSeedCreatives.length]} 캠페인`,
-    creative: campaignSeedCreatives[index % campaignSeedCreatives.length],
-    url:
-      platform === 'YouTube'
-        ? 'https://www.youtube.com/watch?v=sample1'
-        : platform === 'Instagram'
-          ? 'https://www.instagram.com/reel/sample'
-          : platform === 'TikTok'
-            ? 'https://www.tiktok.com/@sample/video/1'
-            : 'https://ads.example.com/meta',
-    spend,
-    impressions: Math.round(spend / 18) + index * 8400,
-    clicks: Math.round(spend / 430) + index * 420,
-    engagements: Math.round(spend / 250) + index * 680,
-    startDate: `01.${String(8 + (index % 7)).padStart(2, '0')}`,
-    targetChannel: campaignSeedChannels[index % campaignSeedChannels.length],
-  };
-});
+    return {
+      id: `c-${product.rank}-${platform.toLowerCase().replace(/\s/g, '-')}`,
+      platform,
+      productRank: product.rank,
+      name: `${product.brand} ${campaignSeedCreatives[platformIndex]} 캠페인`,
+      creative: campaignSeedCreatives[platformIndex],
+      url:
+        platform === 'YouTube'
+          ? 'https://www.youtube.com/watch?v=sample1'
+          : platform === 'Instagram'
+            ? 'https://www.instagram.com/reel/sample'
+            : platform === 'TikTok'
+              ? 'https://www.tiktok.com/@sample/video/1'
+              : 'https://ads.example.com/meta',
+      spend,
+      impressions: Math.round(spend / 18) + productIndex * 8400 + platformIndex * 5200,
+      clicks: Math.round(spend / 430) + productIndex * 420 + platformIndex * 180,
+      engagements: Math.round(spend / 250) + productIndex * 680 + platformIndex * 260,
+      startDate: `01.${String(8 + ((productIndex + platformIndex) % 7)).padStart(2, '0')}`,
+      targetChannel: campaignSeedChannels[platformIndex],
+    };
+  })
+);
 
 const trendData = [
   { day: '01.08', spend: 210, impressions: 58, clicks: 2.1 },
@@ -130,7 +155,7 @@ const brandMentionRows = [
 const savedContentRows = [
   { title: '선크림 출근 루틴 릴스', tag: '다음 소재', owner: '브랜드팀', status: '브리프 후보' },
   { title: '7일 진정 롱폼 리뷰', tag: '크리에이터', owner: '마케팅팀', status: '집행 검토' },
-  { title: '성분 설명 쇼츠', tag: '레퍼런스', owner: '콘텐츠팀', status: '저장됨' },
+  { title: '성분 설명 쇼츠', tag: '참고 자료', owner: '콘텐츠팀', status: '저장됨' },
 ];
 
 function formatCurrency(value: number) {
@@ -142,9 +167,259 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat('ko-KR').format(value);
 }
 
+type IntegratedPlatformRow = {
+  platform: Platform;
+  model: PlatformDemandModel;
+  band: ReturnType<typeof getDemandSignalBand>;
+  spend: number;
+  campaignCount: number;
+  topMetricName: string;
+  topMetricValue: string;
+  action: string;
+};
+
+function getPlatformAction(score: number, campaignCount: number) {
+  if (campaignCount === 0) return '집행 없음';
+  if (score >= 80) return '후행 반응 확인';
+  if (score >= 60) return '소재 유지 점검';
+  if (score >= 40) return '구매 질문 보강';
+  return '소재 재점검';
+}
+
+function LeadingIntegratedDashboard({
+  rows,
+  overallScore,
+}: {
+  rows: IntegratedPlatformRow[];
+  overallScore: number;
+}) {
+  const overallBand = getDemandSignalBand(overallScore);
+  const activeRows = rows.filter((row) => row.campaignCount > 0);
+  const strongestRow = activeRows.reduce((best, row) => (row.model.score > best.model.score ? row : best), activeRows[0] ?? rows[0]);
+  const reviewRow = activeRows.reduce((lowest, row) => (row.model.score < lowest.model.score ? row : lowest), activeRows[0] ?? rows[0]);
+
+  return (
+    <section className="bg-white rounded-[2.5rem] border border-[#ecf3e7] p-6 md:p-8 shadow-sm">
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-5 mb-7">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">선행지표 대시보드</p>
+          <h3 className="mt-2 text-2xl font-black text-gray-900">상품 기준으로 광고 플랫폼 반응을 한눈에 봅니다</h3>
+          <p className="mt-2 max-w-3xl text-sm font-bold leading-relaxed text-gray-500">
+            플랫폼별 반응을 하나의 상품 관점으로 묶어, 어떤 반응을 판매 채널 지표와 함께 확인해야 하는지 먼저 봅니다.
+          </p>
+        </div>
+        <span className={`w-fit rounded-xl px-4 py-2 text-xs font-black ${demandToneClass[overallBand.tone]}`}>
+          {overallBand.label}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="rounded-2xl bg-gray-900 p-5 text-white">
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">통합 선행 신호</p>
+          <p className="mt-2 text-4xl font-black text-[#6dec13]">{overallScore}</p>
+          <p className="mt-1 text-xs font-bold text-gray-400">집행 금액을 반영한 상품 단위 신호</p>
+        </div>
+        <div className="rounded-2xl bg-[#f7f8f6] border border-[#ecf3e7] p-5">
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">가장 뚜렷한 플랫폼</p>
+          <p className="mt-2 flex items-center gap-2 text-lg font-black text-gray-900">
+            {platformIcons[strongestRow.platform]}
+            {strongestRow.platform}
+          </p>
+          <p className="mt-1 text-xs font-bold text-gray-500">{strongestRow.model.score}점 · {strongestRow.band.label}</p>
+        </div>
+        <div className="rounded-2xl bg-[#f7f8f6] border border-[#ecf3e7] p-5">
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">집행 플랫폼</p>
+          <p className="mt-2 text-lg font-black text-gray-900">{activeRows.length}개</p>
+          <p className="mt-1 text-xs font-bold text-gray-500">이 상품에 연결된 선행 플랫폼</p>
+        </div>
+        <div className="rounded-2xl bg-[#f7f8f6] border border-[#ecf3e7] p-5">
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">우선 확인</p>
+          <p className="mt-2 flex items-center gap-2 text-lg font-black text-gray-900">
+            {platformIcons[reviewRow.platform]}
+            {reviewRow.platform}
+          </p>
+          <p className="mt-1 text-xs font-bold text-gray-500">{reviewRow.action}</p>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-[2rem] border border-[#ecf3e7]">
+        <div className="grid grid-cols-[1fr_120px_140px_1.2fr_120px] gap-4 bg-[#f7f8f6] px-5 py-3 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c] max-lg:hidden">
+          <span>플랫폼</span>
+          <span>캠페인</span>
+          <span>집행 금액</span>
+          <span>핵심 신호</span>
+          <span className="text-right">판단</span>
+        </div>
+        <div className="divide-y divide-[#ecf3e7]">
+          {rows.map((row) => (
+            <div key={row.platform} className="grid grid-cols-1 lg:grid-cols-[1fr_120px_140px_1.2fr_120px] gap-4 bg-white px-5 py-4 items-center">
+              <div>
+                <p className="flex items-center gap-2 text-sm font-black text-gray-900">
+                  {platformIcons[row.platform]}
+                  {row.platform}
+                </p>
+                <p className="mt-1 text-xs font-bold text-gray-400">{row.model.scoreName}</p>
+              </div>
+              <p className="text-sm font-black text-gray-900">{row.campaignCount}개</p>
+              <p className="text-sm font-black text-gray-900">{formatCurrency(row.spend)}</p>
+              <div>
+                <p className="text-sm font-black text-gray-900">{row.topMetricValue}</p>
+                <p className="mt-1 text-xs font-bold text-gray-500">{row.topMetricName}</p>
+              </div>
+              <div className="lg:text-right">
+                <p className="text-sm font-black text-gray-900">{row.model.score}점</p>
+                <span className={`mt-1 inline-flex rounded-lg px-2.5 py-1 text-[10px] font-black ${demandToneClass[row.band.tone]}`}>
+                  {row.action}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DemandViewTabs({
+  activeView,
+  onViewChange,
+}: {
+  activeView: DemandAnalysisView;
+  onViewChange: (view: DemandAnalysisView) => void;
+}) {
+  return (
+    <section className="rounded-[2rem] border border-[#ecf3e7] bg-white p-4 shadow-sm">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">분석 보기</p>
+          <p className="mt-1 text-sm font-bold text-gray-500">전체 요약 또는 플랫폼별 상세를 선택합니다.</p>
+        </div>
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label="선행지표 분석 보기 선택">
+          <button
+            type="button"
+            onClick={() => onViewChange('dashboard')}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all ${
+              activeView === 'dashboard' ? 'bg-gray-900 text-[#6dec13]' : 'bg-[#f7f8f6] text-gray-500 hover:text-gray-900'
+            }`}
+            aria-selected={activeView === 'dashboard'}
+            role="tab"
+          >
+            <Radio className="w-4 h-4" />
+            대시보드
+          </button>
+          {LEADING_PLATFORMS.map((platform) => (
+            <button
+              key={platform}
+              type="button"
+              onClick={() => onViewChange(platform)}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all ${
+                activeView === platform ? 'bg-gray-900 text-[#6dec13]' : 'bg-[#f7f8f6] text-gray-500 hover:text-gray-900'
+              }`}
+              aria-selected={activeView === platform}
+              role="tab"
+            >
+              {platformIcons[platform]}
+              {platform}
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PlatformDemandSection({ model }: { model: PlatformDemandModel }) {
+  const band = getDemandSignalBand(model.score);
+
+  return (
+    <section className="bg-white rounded-[2.5rem] border border-[#ecf3e7] p-6 md:p-8 shadow-sm">
+      <div className="mb-7">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-widest text-[#6c9a4c]">플랫폼별 수요 신호 판단</p>
+          <h3 className="mt-2 text-2xl font-black text-gray-900">플랫폼마다 다른 행동을 다르게 해석합니다</h3>
+          <p className="mt-2 max-w-3xl text-sm font-bold leading-relaxed text-gray-500">
+            조회수, 저장, 공유, 댓글, 시청 지속은 플랫폼마다 의미가 다릅니다. 선택한 플랫폼에서 무엇이 강한 신호인지 간결하게 확인합니다.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div className="xl:col-span-4 rounded-[2rem] bg-gray-900 p-6 text-white">
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-xs font-black">
+              {platformIcons[model.platform]}
+              {model.platform}
+            </span>
+            <span className={`rounded-xl px-3 py-2 text-xs font-black ${demandToneClass[band.tone]}`}>
+              {band.label}
+            </span>
+          </div>
+
+          <p className="mt-6 text-sm font-black text-gray-400">{model.scoreName}</p>
+          <div className="mt-2 flex items-end gap-2">
+            <p className={`text-6xl font-black tracking-tight ${demandScoreToneClass[band.tone]}`}>{model.score}</p>
+            <p className="pb-2 text-sm font-black text-gray-400">/ 100</p>
+          </div>
+
+          <p className="mt-5 text-sm font-bold leading-relaxed text-gray-300">{model.platformRole}</p>
+          <p className="mt-4 rounded-2xl border border-white/10 bg-white/8 p-4 text-sm font-bold leading-relaxed text-white">
+            {buildDemandSummaryText(model)}
+          </p>
+
+          <div className="mt-5 rounded-2xl border border-white/10 bg-white/8 p-4 text-xs">
+            <p className="font-black text-gray-400">신뢰도</p>
+            <p className="mt-1 font-black text-white">{model.reliabilityLabel}</p>
+          </div>
+          <p className="mt-3 text-xs font-bold leading-relaxed text-gray-400">{model.reliabilityReason}</p>
+        </div>
+
+        <div className="xl:col-span-8 space-y-4">
+          {model.negativeBarrierPenalty && (
+            <div className="rounded-[2rem] border border-amber-100 bg-amber-50 p-5">
+              <div className="flex items-center gap-2 text-amber-700">
+                <ShieldAlert className="w-4 h-4" />
+                <p className="text-sm font-black">해석 주의 요인: -{model.negativeBarrierPenalty.value}점</p>
+              </div>
+              <p className="mt-2 text-xs font-bold leading-relaxed text-amber-700">{model.negativeBarrierPenalty.reason}</p>
+            </div>
+          )}
+
+          <div className="overflow-hidden rounded-[2rem] border border-[#ecf3e7]">
+            <div className="grid grid-cols-[1.2fr_0.9fr_120px] gap-4 bg-white px-5 py-3 text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">
+              <span>지표</span>
+              <span>관찰된 신호</span>
+              <span className="text-right">신호 점수</span>
+            </div>
+            <div className="divide-y divide-[#ecf3e7] bg-white">
+              {model.metrics.map((metric) => (
+                <div key={metric.id} className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.9fr_120px] gap-4 px-5 py-4">
+                  <div>
+                    <p className="text-sm font-black text-gray-900">{metric.name}</p>
+                    <p className="mt-2 text-xs font-medium leading-relaxed text-gray-400">{metric.reason}</p>
+                  </div>
+                  <div className="flex items-center">
+                    <p className="text-sm font-black text-gray-900">{metric.valueLabel}</p>
+                  </div>
+                  <div className="flex flex-col justify-center">
+                    <p className="text-right text-xs font-black text-gray-900">{metric.score}점</p>
+                    <div className="mt-2 h-2 rounded-full bg-[#ecf3e7] overflow-hidden" aria-hidden="true">
+                      <div className="h-full rounded-full bg-[#6dec13]" style={{ width: `${metric.score}%` }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }) => {
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [activePlatform, setActivePlatform] = useState<Platform | '전체'>('전체');
+  const [activeDemandView, setActiveDemandView] = useState<DemandAnalysisView>('dashboard');
   const [newUrl, setNewUrl] = useState('');
   const [newPlatform, setNewPlatform] = useState<Platform>('YouTube');
   const [newSpend, setNewSpend] = useState('1200000');
@@ -158,6 +433,7 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }
 
   const selectedProduct = MOCK_PRODUCTS.find((product) => product.rank === selectedProductRank) ?? MOCK_PRODUCTS[0];
   const allForProduct = campaigns.filter((campaign) => campaign.productRank === selectedProductRank);
+  const activeDemandModel = activeDemandView === 'dashboard' ? null : getPlatformDemandModel(activeDemandView);
 
   const totals = allForProduct.reduce(
     (acc, campaign) => ({
@@ -169,7 +445,7 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }
     { spend: 0, impressions: 0, clicks: 0, engagements: 0 }
   );
 
-  const platformData = (['YouTube', 'Instagram', 'Meta Ads', 'TikTok'] as Platform[]).map((platform) => {
+  const platformData = LEADING_PLATFORMS.map((platform) => {
     const platformCampaigns = allForProduct.filter((campaign) => campaign.platform === platform);
     return {
       platform,
@@ -177,6 +453,32 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }
       clicks: platformCampaigns.reduce((sum, campaign) => sum + campaign.clicks, 0),
     };
   });
+
+  const integratedRows: IntegratedPlatformRow[] = LEADING_PLATFORMS.map((platform) => {
+    const platformCampaigns = allForProduct.filter((campaign) => campaign.platform === platform);
+    const model = getPlatformDemandModel(platform);
+    const topMetric = model.metrics.reduce((best, metric) => (
+      metric.score * metric.weight > best.score * best.weight ? metric : best
+    ), model.metrics[0]);
+
+    return {
+      platform,
+      model,
+      band: getDemandSignalBand(model.score),
+      spend: platformCampaigns.reduce((sum, campaign) => sum + campaign.spend, 0),
+      campaignCount: platformCampaigns.length,
+      topMetricName: topMetric.name,
+      topMetricValue: topMetric.valueLabel,
+      action: getPlatformAction(model.score, platformCampaigns.length),
+    };
+  });
+
+  const totalIntegratedSpend = integratedRows.reduce((sum, row) => sum + row.spend, 0);
+  const overallLeadingScore = Math.round(
+    totalIntegratedSpend > 0
+      ? integratedRows.reduce((sum, row) => sum + row.model.score * row.spend, 0) / totalIntegratedSpend
+      : integratedRows.reduce((sum, row) => sum + row.model.score, 0) / integratedRows.length
+  );
 
   const handleAddCampaign = () => {
     if (!newUrl.trim()) return;
@@ -207,17 +509,12 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 text-red-600 rounded-full text-[11px] font-black uppercase tracking-widest mb-4">
             <Sparkles className="w-3.5 h-3.5" />
-            선행지표 분석관
+            선행지표 분석
           </div>
           <h2 className="text-4xl font-black text-gray-900 tracking-tight">광고를 어디에, 얼마나, 어떻게 집행했는지 봅니다.</h2>
           <p className="mt-3 text-sm font-bold text-gray-500 max-w-3xl">
-            YouTube, Instagram, Meta Ads, TikTok 캠페인의 집행 금액과 노출, 클릭, 참여 반응을 선택 상품 기준으로 추적합니다.
+            YouTube, Instagram, Meta Ads, TikTok 캠페인의 집행 금액과 노출, 클릭, 참여 반응을 함께 추적합니다.
           </p>
-        </div>
-
-        <div className="rounded-2xl border border-[#ecf3e7] bg-white px-5 py-4 shadow-sm">
-          <p className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">선택 상품 기준</p>
-          <p className="mt-1 max-w-[360px] truncate text-sm font-black text-gray-900">{selectedProduct.name}</p>
         </div>
       </section>
 
@@ -253,6 +550,14 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }
           </p>
         </div>
       </section>
+
+      <DemandViewTabs activeView={activeDemandView} onViewChange={setActiveDemandView} />
+
+      {activeDemandView === 'dashboard' ? (
+        <LeadingIntegratedDashboard rows={integratedRows} overallScore={overallLeadingScore} />
+      ) : (
+        <PlatformDemandSection model={activeDemandModel ?? getPlatformDemandModel('YouTube')} />
+      )}
 
       <section className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         <div className="xl:col-span-7 bg-white rounded-[2.5rem] border border-[#ecf3e7] p-8 shadow-sm">
@@ -298,7 +603,7 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }
 
       <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="bg-white rounded-[2rem] border border-[#ecf3e7] p-6 shadow-sm">
-          <h3 className="text-xl font-black text-gray-900 mb-5">후킹 메시지 레퍼런스</h3>
+          <h3 className="text-xl font-black text-gray-900 mb-5">소재 메시지 참고</h3>
           <div className="space-y-3">
             {referenceRows.map((row) => (
               <div key={row.message} className="rounded-2xl bg-[#f7f8f6] border border-[#ecf3e7] p-4">
@@ -349,7 +654,7 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
           <div>
             <h3 className="text-xl font-black text-gray-900">콘텐츠 보관함</h3>
-            <p className="mt-1 text-sm font-bold text-gray-500">레퍼런스, 크리에이터, 다음 소재 후보를 캠페인 실행 항목으로 관리합니다.</p>
+            <p className="mt-1 text-sm font-bold text-gray-500">참고 콘텐츠, 크리에이터, 다음 소재 후보를 캠페인 실행 항목으로 관리합니다.</p>
           </div>
           <span className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">{savedContentRows.length}개 저장</span>
         </div>
@@ -381,7 +686,7 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }
                   onChange={(e) => setNewPlatform(e.target.value as Platform)}
                   className="h-12 bg-gray-50 border-none rounded-xl px-3 text-xs font-black focus:ring-2 focus:ring-[#6dec13]/50"
                 >
-                  {(['YouTube', 'Instagram', 'Meta Ads', 'TikTok'] as Platform[]).map((platform) => (
+                  {LEADING_PLATFORMS.map((platform) => (
                     <option key={platform} value={platform}>{platform}</option>
                   ))}
                 </select>
@@ -414,7 +719,7 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }
           <div className="bg-white rounded-[2.5rem] border border-[#ecf3e7] p-8 shadow-sm">
             <h3 className="text-lg font-black text-gray-900 mb-6">채널 필터</h3>
             <div className="grid grid-cols-1 gap-2">
-              {(['전체', 'YouTube', 'Instagram', 'Meta Ads', 'TikTok'] as const).map((platform) => (
+              {(['전체', ...LEADING_PLATFORMS] as const).map((platform) => (
                 <button
                   key={platform}
                   onClick={() => setActivePlatform(platform)}
@@ -485,20 +790,20 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }
             </div>
 
             <div className="bg-gray-900 rounded-[2.5rem] p-8 shadow-2xl text-white">
-              <h3 className="text-xl font-black mb-5">후행지표 연결 힌트</h3>
+              <h3 className="text-xl font-black mb-5">판매 채널 확인 포인트</h3>
               <div className="space-y-4">
                 <div className="bg-white/8 border border-white/10 rounded-2xl p-5">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">강한 광고 반응</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">강한 선행 신호</p>
                   <p className="mt-2 text-lg font-black text-[#6dec13]">YouTube 클릭률 4.3%</p>
                   <p className="mt-2 text-xs font-bold text-gray-400 leading-relaxed">
-                    올리브영 구매 반응이 2-3일 뒤 따라오는지 후행지표 분석관에서 확인하세요.
+                    판매 채널 반응이 2-3일 뒤 따라오는지 후행지표에서 확인하세요.
                   </p>
                 </div>
                 <div className="bg-white/8 border border-white/10 rounded-2xl p-5">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">위험 신호</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">점검 신호</p>
                   <p className="mt-2 text-lg font-black text-orange-300">Meta Ads 클릭 비용 상승</p>
                   <p className="mt-2 text-xs font-bold text-gray-400 leading-relaxed">
-                    네이버 커머스 반응이 같이 오르지 않으면 랜딩 또는 소재를 점검해야 합니다.
+                    판매 채널 반응이 같이 오르지 않으면 상세 페이지 또는 소재를 점검해야 합니다.
                   </p>
                 </div>
               </div>
@@ -513,55 +818,70 @@ const AdAnalyticsView: React.FC<AdAnalyticsViewProps> = ({ selectedProductRank }
           <p className="mt-1 text-sm font-bold text-gray-400">집행 내역을 상품과 판매 채널에 연결할 수 있게 정리합니다.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 p-6">
-          {filteredCampaigns.map((campaign) => (
-            <div key={campaign.id} className="border border-[#ecf3e7] rounded-2xl overflow-hidden bg-[#f7f8f6]">
-              <div className="p-5 bg-white border-b border-[#ecf3e7]">
-                <div className="flex items-center justify-between gap-3 mb-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-900 text-[#6dec13] rounded-lg text-[10px] font-black">
-                    {platformIcons[campaign.platform]}
-                    {campaign.platform}
-                  </span>
-                  <span className="text-[10px] font-black text-gray-400">{campaign.startDate}</span>
+          {filteredCampaigns.map((campaign) => {
+            const campaignDemandModel = getPlatformDemandModel(campaign.platform);
+            const campaignBand = getDemandSignalBand(campaignDemandModel.score);
+
+            return (
+              <div key={campaign.id} className="border border-[#ecf3e7] rounded-2xl overflow-hidden bg-[#f7f8f6]">
+                <div className="p-5 bg-white border-b border-[#ecf3e7]">
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-900 text-[#6dec13] rounded-lg text-[10px] font-black">
+                      {platformIcons[campaign.platform]}
+                      {campaign.platform}
+                    </span>
+                    <span className="text-[10px] font-black text-gray-400">{campaign.startDate}</span>
+                  </div>
+                  <h4 className="font-black text-gray-900 line-clamp-2 min-h-[44px]">{campaign.name}</h4>
+                  <p className="mt-2 text-xs font-bold text-gray-400">{campaign.creative}</p>
                 </div>
-                <h4 className="font-black text-gray-900 line-clamp-2 min-h-[44px]">{campaign.name}</h4>
-                <p className="mt-2 text-xs font-bold text-gray-400">{campaign.creative}</p>
-              </div>
-              <div className="p-5 space-y-3">
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <p className="font-black text-gray-400">광고비</p>
-                    <p className="font-black text-gray-900">{formatCurrency(campaign.spend)}</p>
+                <div className="p-5 space-y-3">
+                  <div className="rounded-2xl bg-white border border-[#ecf3e7] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#6c9a4c]">수요 신호</p>
+                        <p className="mt-1 text-lg font-black text-gray-900">{campaignDemandModel.score}점</p>
+                      </div>
+                      <span className={`rounded-lg px-2.5 py-1 text-[10px] font-black ${demandToneClass[campaignBand.tone]}`}>
+                        {campaignBand.label}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-[11px] font-bold leading-relaxed text-gray-500">{campaignDemandModel.scoreName}</p>
                   </div>
-                  <div>
-                    <p className="font-black text-gray-400">클릭</p>
-                    <p className="font-black text-gray-900">{formatNumber(campaign.clicks)}</p>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <p className="font-black text-gray-400">광고비</p>
+                      <p className="font-black text-gray-900">{formatCurrency(campaign.spend)}</p>
+                    </div>
+                    <div>
+                      <p className="font-black text-gray-400">클릭</p>
+                      <p className="font-black text-gray-900">{formatNumber(campaign.clicks)}</p>
+                    </div>
+                    <div>
+                      <p className="font-black text-gray-400">CTR</p>
+                      <p className="font-black text-gray-900">{((campaign.clicks / campaign.impressions) * 100).toFixed(1)}%</p>
+                    </div>
+                    <div>
+                      <p className="font-black text-gray-400">연결 채널</p>
+                      <p className="font-black text-gray-900">{campaign.targetChannel}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-black text-gray-400">CTR</p>
-                    <p className="font-black text-gray-900">{((campaign.clicks / campaign.impressions) * 100).toFixed(1)}%</p>
-                  </div>
-                  <div>
-                    <p className="font-black text-gray-400">목표 채널</p>
-                    <p className="font-black text-gray-900">{campaign.targetChannel}</p>
-                  </div>
+                  <a href={campaign.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-black text-blue-600 hover:underline">
+                    콘텐츠 열기 <ArrowUpRight className="w-3.5 h-3.5" />
+                  </a>
                 </div>
-                <a href={campaign.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-black text-blue-600 hover:underline">
-                  소재 보기 <ArrowUpRight className="w-3.5 h-3.5" />
-                </a>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {filteredCampaigns.length === 0 && (
             <div className="md:col-span-2 xl:col-span-4 py-16 text-center text-gray-400 font-black">
-              선택한 조건에 맞는 선행 광고 데이터가 없습니다.
+              표시할 선행 광고 데이터가 없습니다.
             </div>
           )}
         </div>
       </section>
-
-      <OliveYoungCommercePanel campaignId="campaign-youtube-01" productId={`product-${selectedProductRank}`} />
-
     </div>
   );
 };

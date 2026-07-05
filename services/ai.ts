@@ -1,7 +1,7 @@
 import { MOCK_PRODUCTS } from "../constants";
 
 export const askAIAboutProducts = async (userQuery: string) => {
-  // Mock response for now; backend will handle real AI answers later.
+  // Temporary local response until backend-generated answers are connected.
   const top3 = MOCK_PRODUCTS.slice(0, 3)
     .map((item) => `#${item.rank} ${item.brand} ${item.name}`)
     .join(", ");
@@ -14,8 +14,8 @@ export const askAIAboutProducts = async (userQuery: string) => {
 
   return [
     `질문: "${userQuery}"`,
-    "현재는 모의 응답을 반환합니다.",
-    `Top 3: ${top3}`,
+    "현재 연결된 상품 데이터를 기준으로 간단히 요약합니다.",
+    `상위 상품: ${top3}`,
     `상승폭 최대: ${biggestRise.brand} ${biggestRise.name} (${biggestRise.change > 0 ? "+" : ""}${biggestRise.change})`,
     `하락폭 최대: ${biggestDrop.brand} ${biggestDrop.name} (${biggestDrop.change > 0 ? "+" : ""}${biggestDrop.change})`,
   ].join("\n");
