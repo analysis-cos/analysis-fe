@@ -1,9 +1,11 @@
+name: branddash
+
 services:
   app:
     build:
       context: .
       target: runner
-    image: analysis-fe:latest
+    image: branddash-analytics-dashboard:latest
     ports:
       - "${APP_PORT:-3000}:80"
     restart: unless-stopped
