@@ -60,6 +60,8 @@ Production-style static build:
    `docker compose up --build`
 2. Open:
    `http://localhost:3000`
+3. If port 3000 is already in use:
+   `APP_PORT=3002 docker compose up --build`
 
 Vite dev server in Docker:
 
@@ -67,3 +69,5 @@ Vite dev server in Docker:
    `docker compose --profile dev up app-dev`
 2. Open:
    `http://localhost:3001`
+3. If port 3001 is already in use:
+   `DEV_PORT=3003 docker compose --profile dev up app-dev`
